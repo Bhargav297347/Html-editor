@@ -295,8 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
       lineNumbers: true,
       autoCloseTags: true,
       autoCloseBrackets: true,
-      lineWrapping: true,
-      indentUnit: 2
     });
 
     const cssEditor = CodeMirror(document.getElementById('css-editor'), {
@@ -305,8 +303,6 @@ document.addEventListener('DOMContentLoaded', function() {
       theme: 'dracula',
       lineNumbers: true,
       autoCloseBrackets: true,
-      lineWrapping: true,
-      indentUnit: 2
     });
 
     const jsEditor = CodeMirror(document.getElementById('js-editor'), {
@@ -315,8 +311,6 @@ document.addEventListener('DOMContentLoaded', function() {
       theme: 'dracula',
       lineNumbers: true,
       autoCloseBrackets: true,
-      lineWrapping: true,
-      indentUnit: 2
     });
 
     function debounce(func, delay) {
