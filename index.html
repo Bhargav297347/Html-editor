@@ -140,19 +140,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="editor-container">
-      <div class="editor-panel">
-        <div class="tab-container">
-          <div class="tab active" data-tab="html">HTML</div>
-          <div class="tab" data-tab="css">CSS</div>
-          <div class="tab" data-tab="js">JavaScript</div>
-        </div>
-        
-        <div class="editor html-editor" id="html-editor"></div>
-        <div class="editor css-editor" id="css-editor" style="display: none;"></div>
-        <div class="editor js-editor" id="js-editor" style="display: none;"></div>
-      </div>
-      
+    
       <div class="preview-container">
         <div class="preview-header">
           <span>Preview</span>
@@ -167,7 +155,19 @@
       <button id="clear-btn">Clear All</button>
     </div>
   </div>
-
+  <div class="editor-container">
+      <div class="editor-panel">
+        <div class="tab-container">
+          <div class="tab active" data-tab="html">HTML</div>
+          <div class="tab" data-tab="css">CSS</div>
+          <div class="tab" data-tab="js">JavaScript</div>
+        </div>
+        
+        <div class="editor html-editor" id="html-editor"></div>
+        <div class="editor css-editor" id="css-editor" style="display: none;"></div>
+        <div class="editor js-editor" id="js-editor" style="display: none;"></div>
+      </div>
+      
   <script>
     // Default code samples
     const defaultHTML = `<!DOCTYPE html>
