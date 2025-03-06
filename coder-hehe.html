@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 60px);
+      padding: 1rem;
+      gap: 1rem;
+    }
+    
+    .editor-container {
+      display: flex;
+      flex: 1;
+      gap: 1rem;
+      min-height: 300px;
+    }
+    
+    .editor-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .panel-header {
+      background-color: #34495e;
+      color: white;
+      padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .editor {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .CodeMirror {
+      height: 100%;
+    }
+    
+    .preview-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .preview-header {
+      background-color: #34495e;
+      color: white;
+      padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .preview {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    
+    button {
+      padding: 0.5rem 1.5rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    
+    button:hover {
+      background-color: #2980b9;
+    }
+    
+    .tab-container {
+      display: flex;
+      background-color: #34495e;
+    }
+    
+    .tab {
+      padding: 0.5rem 1rem;
+      color: white;
+      cursor: pointer;
+    }
+    
+    .tab.active {
+      background-color: #2c3e50;
+      border-bottom: 2px solid #3498db;
+    }
+    
+    @media (max-width: 768px) {
+      .editor-container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="editor-container">
+      <div class="editor-panel">
+        <div class="tab-container">
+          <div class="tab active" data-tab="html">HTML</div>
+          <div class="tab" data-tab="css">CSS</div>
+          <div class="tab" data-tab="js">JavaScript</div>
+        </div>
+        
+        <div class="editor html-editor" id="html-editor"></div>
+        <div class="editor css-editor" id="css-editor" style="display: none;"></div>
+        <div class="editor js-editor" id="js-editor" style="display: none;"></div>
+      </div>
+      
+      <div class="preview-container">
+        <div class="preview-header">
+          <span>Preview</span>
+          <button id="refresh-btn">Refresh</button>
+        </div>
+        <iframe class="preview" id="preview"></iframe>
+      </div>
+    </div>
+    
+    <div class="button-container">
+      <button id="run-btn">Run Code</button>
+      <button id="clear-btn">Clear All</button>
+    </div>
+  </div>
+
+  <script>
+    // Default code samples
+    const defaultHTML = `<!DOCTYPE html>
+<html>
+<head>
+  <title>My Web Page</title>
+</head>
+<body>
+  <h1>Hello, World!</h1>
+  <p>This is a simple HTML page.</p>
+  <button id="changeColor">Change Color</button>
+</body>
+</html>`;
+
+    const defaultCSS = `body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  padding: 20px;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+p {
+  color: #7f8c8d;
+}
+
+button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2980b9;
+}`;
+
+    const defaultJS = `// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the button element
+  const button = document.getElementById('changeColor');
+  
+  // Add click event listener
+  button.addEventListener('click', function() {
+    // Change body background color
+    document.body.style.backgroundColor = getRandomColor();
+  });
+  
+  // Function to generate random color
+  function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+});`;
+
+    // Initialize CodeMirror editors
+    const htmlEditor = CodeMirror(document.getElementById('html-editor'), {
+      value: defaultHTML,
+      mode: 'htmlmixed',
+      theme: 'dracula',
+      lineNumbers: true,
+      autoCloseTags: true,
+      autoCloseBrackets: true
+    });
+
+    const cssEditor = CodeMirror(document.getElementById('css-editor'), {
+      value: defaultCSS,
+      mode: 'css',
+      theme: 'dracula',
+      lineNumbers: true,
+      autoCloseBrackets: true
+    });
+
+    const jsEditor = CodeMirror(document.getElementById('js-editor'), {
+      value: defaultJS,
+      mode: 'javascript',
+      theme: 'dracula',
+      lineNumbers: true,
+      autoCloseBrackets: true
+    });
+
+    // Debounce function for efficient preview updates
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    // Run code function
+    function runCode() {
+      const html = htmlEditor.getValue();
+      const css = cssEditor.getValue();
+      const js = jsEditor.getValue();
+      
+      const previewFrame = document.getElementById('preview');
+      const preview = previewFrame.contentDocument || previewFrame.contentWindow.document;
+      
+      preview.open();
+      preview.write(html);
+      
+      // Add CSS
+      const styleElement = preview.createElement('style');
+      styleElement.textContent = css;
+      preview.head.appendChild(styleElement);
+      
+      // Add JavaScript
+      const scriptElement = preview.createElement('script');
+      scriptElement.textContent = js;
+      preview.body.appendChild(scriptElement);
+      
+      preview.close();
+    }
+
+    // Create debounced version of runCode
+    const debouncedRunCode = debounce(runCode, 300);
+
+    // Add real-time editors' change listeners
+    htmlEditor.on('change', debouncedRunCode);
+    cssEditor.on('change', debouncedRunCode);
+    jsEditor.on('change', debouncedRunCode);
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        document.getElementById('html-editor').style.display = 'none';
+        document.getElementById('css-editor').style.display = 'none';
+        document.getElementById('js-editor').style.display = 'none';
+        
+        const tabName = tab.getAttribute('data-tab');
+        document.getElementById(`${tabName}-editor`).style.display = 'block';
+        
+        if (tabName === 'html') htmlEditor.refresh();
+        else if (tabName === 'css') cssEditor.refresh();
+        else if (tabName === 'js') jsEditor.refresh();
+      });
+    });
+
+    // Initial display
+    document.getElementById('html-editor').style.display = 'block';
+
+    // Clear all editors
+    function clearAll() {
+      if (confirm('Are you sure you want to clear all code?')) {
+        htmlEditor.setValue('');
+        cssEditor.setValue('');
+        jsEditor.setValue('');
+        runCode();
+      }
+    }
+
+    // Event listeners
+    document.getElementById('run-btn').addEventListener('click', runCode);
+    document.getElementById('refresh-btn').addEventListener('click', runCode);
+    document.getElementById('clear-btn').addEventListener('click', clearAll);
+
+    // Initial code execution
+    window.onload = runCode;
+  </script>
+</body>
+</html>
