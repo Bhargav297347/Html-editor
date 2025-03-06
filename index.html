@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
   <style>
-    
     * {
       margin: 0;
       padding: 0;
@@ -20,23 +19,35 @@
     }
     
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f5f5f5;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
       color: #333;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 60px);
-      padding: 1rem;
-      gap: 1rem;
+      line-height: 1.6;
     }
     
-    .editor-container {
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .app-title {
+      text-align: center;
+      color: #2d3748;
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+    
+    .main-content {
       display: flex;
       flex: 1;
-      gap: 1rem;
+      gap: 16px;
       min-height: 300px;
+      border-radius: 12px;
+      overflow: hidden;
     }
     
     .editor-panel {
@@ -45,17 +56,30 @@
       flex-direction: column;
       background: white;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       overflow: hidden;
     }
     
-    .panel-header {
-      background-color: #34495e;
-      color: white;
-      padding: 0.5rem;
+    .tab-container {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background-color: #2d3748;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .tab:hover {
+      background-color: #4a5568;
+    }
+    
+    .tab.active {
+      background-color: #1a202c;
+      border-bottom: 3px solid #3182ce;
     }
     
     .editor {
@@ -65,6 +89,8 @@
     
     .CodeMirror {
       height: 100%;
+      font-size: 15px;
+      font-family: 'Fira Code', 'Consolas', monospace;
     }
     
     .preview-container {
@@ -73,17 +99,33 @@
       flex-direction: column;
       background: white;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       overflow: hidden;
     }
     
     .preview-header {
-      background-color: #34495e;
+      background-color: #2d3748;
       color: white;
-      padding: 0.5rem;
+      padding: 10px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-weight: 500;
+    }
+    
+    .preview-header button {
+      background-color: #4299e1;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .preview-header button:hover {
+      background-color: #3182ce;
     }
     
     .preview {
@@ -91,71 +133,80 @@
       border: none;
       width: 100%;
       height: 100%;
+      background: white;
     }
     
     .button-container {
       display: flex;
       justify-content: center;
-      gap: 1rem;
-      padding: 1rem;
+      gap: 12px;
+      padding: 16px 0;
     }
     
-    button {
-      padding: 0.5rem 1.5rem;
-      background-color: #3498db;
+    .action-button {
+      padding: 10px 20px;
+      background-color: #3182ce;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s;
-    }
-    
-    button:hover {
-      background-color: #2980b9;
-    }
-    
-    .tab-container {
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.2s;
       display: flex;
-      background-color: #34495e;
+      align-items: center;
+      gap: 8px;
     }
     
-    .tab {
-      padding: 0.5rem 1rem;
-      color: white;
-      cursor: pointer;
+    .action-button:hover {
+      background-color: #2c5282;
+      transform: translateY(-1px);
     }
     
-    .tab.active {
-      background-color: #2c3e50;
-      border-bottom: 2px solid #3498db;
+    .clear-btn {
+      background-color: #e53e3e;
+    }
+    
+    .clear-btn:hover {
+      background-color: #c53030;
     }
     
     @media (max-width: 768px) {
-      .editor-container {
-        flex-direction: column;
+      .container {
+        padding: 8px;
+        height: 100vh;
+      }
+      
+      .main-content {
+        flex-direction: column-reverse;
+        gap: 12px;
+      }
+      
+      .preview-container {
+        min-height: 40vh;
+      }
+      
+      .editor-panel {
+        min-height: 40vh;
+      }
+      
+      .tab {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      
+      .action-button {
+        padding: 8px 16px;
+        font-size: 14px;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <h1 class="app-title">Code Editor</h1>
     
-      <div class="preview-container">
-        <div class="preview-header">
-          <span>Preview</span>
-          <button id="refresh-btn">Refresh</button>
-        </div>
-        <iframe class="preview" id="preview"></iframe>
-      </div>
-    </div>
-    
-    <div class="button-container">
-      <button id="run-btn">Run Code</button>
-      <button id="clear-btn">Clear All</button>
-    </div>
-  </div>
-  <div class="editor-container">
+    <div class="main-content">
       <div class="editor-panel">
         <div class="tab-container">
           <div class="tab active" data-tab="html">HTML</div>
@@ -168,6 +219,21 @@
         <div class="editor js-editor" id="js-editor" style="display: none;"></div>
       </div>
       
+      <div class="preview-container">
+        <div class="preview-header">
+          <span>Preview</span>
+          <button id="refresh-btn">Refresh</button>
+        </div>
+        <iframe class="preview" id="preview"></iframe>
+      </div>
+    </div>
+    
+    <div class="button-container">
+      <button id="run-btn" class="action-button">Run Code</button>
+      <button id="clear-btn" class="action-button clear-btn">Clear All</button>
+    </div>
+  </div>
+
   <script>
     // Default code samples
     const defaultHTML = `<!DOCTYPE html>
@@ -231,14 +297,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });`;
 
-    // Initialize CodeMirror editors
     const htmlEditor = CodeMirror(document.getElementById('html-editor'), {
       value: defaultHTML,
       mode: 'htmlmixed',
       theme: 'dracula',
       lineNumbers: true,
       autoCloseTags: true,
-      autoCloseBrackets: true
+      autoCloseBrackets: true,
+      lineWrapping: true,
+      indentUnit: 2
     });
 
     const cssEditor = CodeMirror(document.getElementById('css-editor'), {
@@ -246,7 +313,9 @@ document.addEventListener('DOMContentLoaded', function() {
       mode: 'css',
       theme: 'dracula',
       lineNumbers: true,
-      autoCloseBrackets: true
+      autoCloseBrackets: true,
+      lineWrapping: true,
+      indentUnit: 2
     });
 
     const jsEditor = CodeMirror(document.getElementById('js-editor'), {
@@ -254,10 +323,11 @@ document.addEventListener('DOMContentLoaded', function() {
       mode: 'javascript',
       theme: 'dracula',
       lineNumbers: true,
-      autoCloseBrackets: true
+      autoCloseBrackets: true,
+      lineWrapping: true,
+      indentUnit: 2
     });
 
-    // Debounce function for efficient preview updates
     function debounce(func, delay) {
       let timeoutId;
       return function(...args) {
@@ -266,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
 
-    // Run code function
     function runCode() {
       const html = htmlEditor.getValue();
       const css = cssEditor.getValue();
@@ -278,28 +347,21 @@ document.addEventListener('DOMContentLoaded', function() {
       preview.open();
       preview.write(html);
       
-      // Add CSS
       const styleElement = preview.createElement('style');
       styleElement.textContent = css;
       preview.head.appendChild(styleElement);
       
-      // Add JavaScript
       const scriptElement = preview.createElement('script');
       scriptElement.textContent = js;
       preview.body.appendChild(scriptElement);
       
       preview.close();
     }
-
-    // Create debounced version of runCode
-    const debouncedRunCode = debounce(runCode, 300);
-
-    // Add real-time editors' change listeners
+    const debouncedRunCode = debounce(runCode, 500);
     htmlEditor.on('change', debouncedRunCode);
     cssEditor.on('change', debouncedRunCode);
     jsEditor.on('change', debouncedRunCode);
-
-    // Tab switching
+    
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -312,17 +374,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const tabName = tab.getAttribute('data-tab');
         document.getElementById(`${tabName}-editor`).style.display = 'block';
-        
         if (tabName === 'html') htmlEditor.refresh();
         else if (tabName === 'css') cssEditor.refresh();
         else if (tabName === 'js') jsEditor.refresh();
       });
     });
-
-    // Initial display
     document.getElementById('html-editor').style.display = 'block';
-
-    // Clear all editors
     function clearAll() {
       if (confirm('Are you sure you want to clear all code?')) {
         htmlEditor.setValue('');
@@ -331,14 +388,19 @@ document.addEventListener('DOMContentLoaded', function() {
         runCode();
       }
     }
+    window.addEventListener('resize', function() {
+      htmlEditor.refresh();
+      cssEditor.refresh();
+      jsEditor.refresh();
+    });
 
-    // Event listeners
     document.getElementById('run-btn').addEventListener('click', runCode);
     document.getElementById('refresh-btn').addEventListener('click', runCode);
     document.getElementById('clear-btn').addEventListener('click', clearAll);
-
-    // Initial code execution
-    window.onload = runCode;
+    
+    window.onload = function() {
+      setTimeout(runCode, 100);
+    };
   </script>
 </body>
 </html>
