@@ -532,7 +532,7 @@ logButton.addEventListener('click', function() {
 // --- Ace Editor Initialization ---
 function initAceEditor(id, mode, defaultValue) {
     const editor = ace.edit(id);
-    editor.setTheme("ace/theme/dracula"); // Use a dark theme
+    editor.setTheme("ace/theme/monokai"); // Use a dark theme
     editor.session.setMode(`ace/mode/${mode}`);
     editor.setValue(defaultValue, 1); // Set initial value and move cursor to end
     editor.setOptions({
