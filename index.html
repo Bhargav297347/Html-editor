@@ -569,7 +569,7 @@ body {
     transform: scale(1.05);
 }`;
 
-    const defaultJS = `fetch('https://api.github.com/users/bhargavxyz738')
+    const defaultJS = `const defaultJS = fetch('https://api.github.com/users/bhargavxyz738')
     .then(response => response.json())
     .then(data => {
         document.getElementById('github-name').innerText = data.name || "Bhargav";
@@ -580,22 +580,18 @@ body {
     });
 
 // Generate a random gradient
-function getRandomGradient() {
-    const colors = [
-        ["#ff9a9e", "#fad0c4"],
-        ["#a1c4fd", "#c2e9fb"],
-        ["#d4fc79", "#96e6a1"],
-        ["#84fab0", "#8fd3f4"],
-        ["#a18cd1", "#fbc2eb"],
-        ["#ff9a9e", "#ffdde1"],
-        ["#b3ffab", "#12fff7"]
-    ];
-    const gradient = colors[Math.floor(Math.random() * colors.length)];
-    return `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`;
+function getRandomColor() {
+  // Generate random values for red, green, and blue (0-255)
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+
+  // Return the color string in rgb() format
+  return 'rgb(' + r + ', ' + g + ', ' + b + ')';
 }
 
 function changeBackground() {
-    document.body.style.background = getRandomGradient();
+    document.body.style.backgroundColor = getRandomColor();
 }
 setInterval(changeBackground, 2000);
 changeBackground();
