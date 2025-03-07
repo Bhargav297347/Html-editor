@@ -287,7 +287,7 @@
       background-color: #282a36;
       border: none;
       color: #f8f8f2;
-      font-family: monospace;
+      font-family: 'Roboto';
       font-size: 14px;
       outline: none;
     }
@@ -299,6 +299,7 @@
     .console-run-btn {
       background-color: #6272a4;
       color: white;
+      padding: 5px;
       border: none;
       border-radius: 4px;
       padding: 0 0.5rem;
@@ -307,7 +308,7 @@
       margin-left: 0.5rem;
     }
     
-    .console-run-btn:hover {
+    .console-run-btn:active {
       background-color: #50fa7b;
       color: #282a36;
     }
@@ -319,7 +320,7 @@
     
     .log-command {
       color: #bd93f9;
-      font-weight: bold;
+      font-weight: 500;
     }
     
     @media (max-width: 768px) {
@@ -423,17 +424,16 @@
           <!-- Console input area - only visible when console is expanded -->
           <div class="console-input-container" id="console-input-container">
               <span class="console-prompt">></span>
-              <input type="text" class="console-input" id="console-input" placeholder="Enter JavaScript commands..." />
+              <input type="text" class="console-input" id="console-input" placeholder="Enter Console Commands" />
               <button class="console-run-btn" id="console-run">Run</button>
           </div>
     </div>
       </div>
     </div>
   </div>
-
   <script>
     // Default code samples
-    const defaultHTML = `<!DOCTYPE html>
+const defaultHTML = `<!DOCTYPE html>
 <html>
 <head>
   <title>My Web Page</title>
@@ -479,14 +479,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get the button elements
   const colorButton = document.getElementById('changeColor');
   const logButton = document.getElementById('logMessage');
-  
+
   // Add click event listener for color change
   colorButton.addEventListener('click', function() {
     const newColor = getRandomColor();
     document.body.style.backgroundColor = newColor;
     console.log('Background color changed to: ' + newColor);
   });
-  
+
   // Add click event listener for logging
   logButton.addEventListener('click', function() {
     console.log('This is a regular log message');
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.warn('This is a warning message');
     console.error('This is an error message');
   });
-  
+
   // Function to generate random color
   function getRandomColor() {
     const letters = '0123456789ABCDEF';
@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     return color;
   }
-  
+
   console.log('Page loaded successfully!');
 });`;
 
@@ -568,22 +568,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function executeConsoleCommand() {
       const command = consoleInput.value.trim();
       if (!command) return;
-      
+
       // Log the command to the console
       const logItem = document.createElement('div');
       logItem.className = 'log-item log-command';
       logItem.textContent = '> ' + command;
       consoleBody.appendChild(logItem);
-      
+
       if (previewFrame && previewFrame.contentWindow) {
         try {
           // Execute the command in the iframe's context
           const result = previewFrame.contentWindow.eval(command);
-          
+
           // Log the result
           const resultItem = document.createElement('div');
           resultItem.className = 'log-item log-result';
-          
+
           if (result === undefined) {
             resultItem.textContent = '< undefined';
           } else if (result === null) {
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
           } else {
             resultItem.textContent = '< ' + result;
           }
-          
+
           consoleBody.appendChild(resultItem);
         } catch (error) {
           // Log any errors
@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
         errorItem.textContent = 'Error: Preview frame not initialized';
         consoleBody.appendChild(errorItem);
       }
-      
+
       // Clear input and scroll to bottom
       consoleInput.value = '';
       consoleBody.scrollTop = consoleBody.scrollHeight;
@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function addConsoleMessage(args, type) {
       const logItem = document.createElement('div');
       logItem.className = `log-item log-${type}`;
-      
+
       // Convert arguments to array and format the message
       const argsArray = Array.from(args).map(arg => {
         if (typeof arg === 'object') {
@@ -642,10 +642,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return String(arg);
       });
-      
+
       logItem.textContent = argsArray.join(' ');
       consoleBody.appendChild(logItem);
-      
+
       // Auto-scroll to the bottom
       consoleBody.scrollTop = consoleBody.scrollHeight;
     }
@@ -653,9 +653,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Intercept console logs - improved version
     function setupConsoleInterceptor(frame) {
       const contentWindow = frame.contentWindow;
-      
+
       if (!contentWindow || isInterceptorSetup) return;
-      
+
       // Store original console methods
       const originalConsole = {
         log: contentWindow.console.log,
@@ -663,28 +663,28 @@ document.addEventListener('DOMContentLoaded', function() {
         warn: contentWindow.console.warn,
         error: contentWindow.console.error
       };
-      
+
       // Override console methods
       contentWindow.console.log = function() {
         addConsoleMessage(arguments, 'log');
         originalConsole.log.apply(contentWindow.console, arguments);
       };
-      
+
       contentWindow.console.info = function() {
         addConsoleMessage(arguments, 'info');
         originalConsole.info.apply(contentWindow.console, arguments);
       };
-      
+
       contentWindow.console.warn = function() {
         addConsoleMessage(arguments, 'warn');
         originalConsole.warn.apply(contentWindow.console, arguments);
       };
-      
+
       contentWindow.console.error = function() {
         addConsoleMessage(arguments, 'error');
         originalConsole.error.apply(contentWindow.console, arguments);
       };
-      
+
       // Mark interceptors as set up
       isInterceptorSetup = true;
     }
@@ -693,35 +693,35 @@ document.addEventListener('DOMContentLoaded', function() {
     function runCode() {
       // Clear the console first
       consoleBody.innerHTML = '<div class="log-item"></div>';
-      
+
       const html = htmlEditor.getValue();
       const css = cssEditor.getValue();
       const js = jsEditor.getValue();
-      
+
       const prevFrame = document.getElementById('preview');
-      
+
       // Reset interceptor status
       isInterceptorSetup = false;
-      
+
       // Create a new iframe to ensure a clean environment
       const newFrame = document.createElement('iframe');
       newFrame.className = 'preview';
       newFrame.id = 'preview';
-      
+
       // Replace the existing iframe
       prevFrame.parentNode.replaceChild(newFrame, prevFrame);
       previewFrame = newFrame;
-      
+
       const preview = newFrame.contentDocument || newFrame.contentWindow.document;
-      
+
       preview.open();
       preview.write(html);
-      
+
       // Add CSS
       const styleElement = preview.createElement('style');
       styleElement.textContent = css;
       preview.head.appendChild(styleElement);
-      
+
       // Set up error handling for the preview frame
       const errorHandler = `
         window.onerror = function(message, source, lineno, colno, error) {
@@ -729,24 +729,24 @@ document.addEventListener('DOMContentLoaded', function() {
           return true;
         };
       `;
-      
+
       // Add error handler script
       const errorScript = preview.createElement('script');
       errorScript.textContent = errorHandler;
       preview.head.appendChild(errorScript);
-      
+
       // Add JavaScript
       const scriptElement = preview.createElement('script');
       scriptElement.textContent = js;
       preview.body.appendChild(scriptElement);
-      
+
       preview.close();
-      
+
       // Set up console interceptor after the iframe has loaded
       newFrame.onload = function() {
         setupConsoleInterceptor(newFrame);
       };
-      
+
       // Show that console has functionality
       if (!isConsoleCollapsed) {
         consoleInputContainer.classList.add('visible');
@@ -767,14 +767,14 @@ document.addEventListener('DOMContentLoaded', function() {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        
+
         document.getElementById('html-editor').style.display = 'none';
         document.getElementById('css-editor').style.display = 'none';
         document.getElementById('js-editor').style.display = 'none';
-        
+
         const tabName = tab.getAttribute('data-tab');
         document.getElementById(`${tabName}-editor`).style.display = 'block';
-        
+
         if (tabName === 'html') htmlEditor.refresh();
         else if (tabName === 'css') cssEditor.refresh();
         else if (tabName === 'js') jsEditor.refresh();
