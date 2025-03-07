@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 1rem;
+      gap: 1rem;
+    }
+    
+    .editor-container {
+      display: flex;
+      flex: 1;
+      gap: 1rem;
+      min-height: 300px;
+    }
+    
+    .editor-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .panel-header {
+      background-color: #34495e;
+      color: white;
+      padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .editor {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .CodeMirror {
+      height: 100%;
+    }
+    
+    .preview-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    /* Browser-like navbar */
+    .browser-navbar {
+      background-color: #eee;
+      border-bottom: 1px solid #ddd;
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .browser-circle {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 2px;
+    }
+    
+    .browser-circle.red {
+      background-color: #ff5f56;
+    }
+    .browser-circle.yellow {
+      background-color: #ffbd2e;
+    }
+    
+    .browser-circle.green {
+      background-color: #27c93f;
+    }
+    .browser-address-bar {
+      flex: 1;
+      background-color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #666;
+      min-width: 140px;
+    }
+    .browser-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }  
+    .preview {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+    } 
+    .console-container {
+      background: transparent;
+      border-radius: 20px;
+      border-bottom-left-radius: 0px;
+      border-bottom-right-radius: 0px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    } 
+    .console-header {
+      background-color: #34495e;
+      color: white;
+      padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }  
+    .console-body {
+      padding: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      background-color: #282a36;
+      color: #f8f8f2;
+    }
+    .console-body.collapsed {
+      display: none;
+    } 
+    .console-clear-btn {
+      background-color: #eee;
+      color: black;
+      border: none;
+      padding: 0.2rem 0.5rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .tab-container {
+      display: flex;
+      background-color: #34495e;
+    }
+    
+    .tab {
+      padding: 0.5rem 1rem;
+      color: white;
+      cursor: pointer;
+    }
+    
+    .tab.active {
+      background-color: #2c3e50;
+      border-bottom: 2px solid #3498db;
+    }
+    
+    .log-item {
+      padding: 2px 4px;
+      border-bottom: 1px solid #444;
+    }
+    
+    .log-error {
+      color: #ff5555;
+    }
+    
+    .log-warn {
+      color: #ffb86c;
+    }
+    
+    .log-info {
+      color: #8be9fd;
+    }
+    
+    .button {
+      padding: 0.3rem 0.8rem;
+      background-color: #dde0e5;
+      color: black;
+      border: none;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
+    }
+    
+    .button:hover {
+      background-color: #D1d5db;
+    }
+    
+    .button.clear {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .button.clear:hover {
+      background-color: #c0392b;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+      background-color: #27c93f;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.5);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .auto-refresh-status {
+      margin-left: 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+    }
+    
+    /* Console input styles */
+    .console-input-container {
+      display: flex;
+      background-color: #282a36;
+      border-top: 1px solid #444;
+      padding: 0.5rem;
+      display: none;
+    }
+    
+    .console-input-container.visible {
+      display: flex;
+    }
+    
+    .console-prompt {
+      color: #50fa7b;
+      margin-right: 5px;
+      font-family: monospace;
+    }
+    
+    .console-input {
+      flex: 1;
+      background-color: #282a36;
+      border: none;
+      color: #f8f8f2;
+      font-family: monospace;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .console-input::placeholder {
+      color: #6272a4;
+    }
+    
+    .console-run-btn {
+      background-color: #6272a4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0 0.5rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+    
+    .console-run-btn:hover {
+      background-color: #50fa7b;
+      color: #282a36;
+    }
+    
+    .log-result {
+      color: #50fa7b;
+      font-style: italic;
+    }
+    
+    .log-command {
+      color: #bd93f9;
+      font-weight: bold;
+    }
+    
+    @media (max-width: 768px) {
+      .editor-container {
+        flex-direction: column;
+      }
+      .preview-container {
+        order: 1;
+      }
+      .editor-panel {
+        order: 2;
+      }
+      .browser-navbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+      
+      .browser-address-bar {
+        order: 1;
+        width: 100%;
+      } 
+      .browser-buttons {
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+      }
+      .button {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+      .console-container {
+        border-radius: 0;
+      }
+      .editor {
+        min-height: 200px;
+      }
+      .auto-refresh-status {
+        margin-left: 23px;
+        margin-top: 10px;
+        justify-content: center;
+      }
+    }
+    @media (max-width: 480px) {
+      .container {
+        padding: 0.5rem;
+      }
+      
+      .browser-buttons {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+      
+      .button {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="editor-container">
+      <div class="editor-panel">
+        <div class="tab-container">
+          <div class="tab active" data-tab="html">HTML</div>
+          <div class="tab" data-tab="css">CSS</div>
+          <div class="tab" data-tab="js">JavaScript</div>
+        </div>
+        
+        <div class="editor html-editor" id="html-editor"></div>
+        <div class="editor css-editor" id="css-editor" style="display: none;"></div>
+        <div class="editor js-editor" id="js-editor" style="display: none;"></div>
+      </div>
+      
+      <div class="preview-container">
+        <!-- Browser-like navbar -->
+        <div class="browser-navbar">
+          <div class="browser-address-bar"><ion-icon name="lock-closed-outline"></ion-icon> https://preview.localhost/</div>
+          <div class="browser-buttons">
+            <button id="refresh-btn" class="button">Refresh</button>
+            <button id="run-btn" class="button">Run Code</button>
+            <button id="clear-btn" class="button clear">Clear All</button>
+            <div class="auto-refresh-status">
+              <span class="status-indicator"></span>
+              Auto-refresh on
+            </div>
+          </div>
+        </div>
+        <iframe class="preview" id="preview"></iframe>
+         <div class="console-container">
+             <div class="console-header" id="console-header">
+             <span>Console</span>
+             <button class="console-clear-btn" id="console-clear">Clear Console</button>
+         </div>
+          <div class="console-body" id="console-body">
+              <div class="log-item"></div>
+          </div>
+          <!-- Console input area - only visible when console is expanded -->
+          <div class="console-input-container" id="console-input-container">
+              <span class="console-prompt">></span>
+              <input type="text" class="console-input" id="console-input" placeholder="Enter JavaScript commands..." />
+              <button class="console-run-btn" id="console-run">Run</button>
+          </div>
+    </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Default code samples
+    const defaultHTML = `<!DOCTYPE html>
+<html>
+<head>
+  <title>My Web Page</title>
+</head>
+<body>
+  <h1>Hello, World!</h1>
+  <p>This is a simple HTML page.</p>
+  <button id="changeColor">Change Color</button>
+  <button id="logMessage">Log Message</button>
+</body>
+</html>`;
+
+    const defaultCSS = `body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  padding: 20px;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+p {
+  color: #7f8c8d;
+}
+
+button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+button:hover {
+  background-color: #2980b9;
+}`;
+
+    const defaultJS = `// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the button elements
+  const colorButton = document.getElementById('changeColor');
+  const logButton = document.getElementById('logMessage');
+  
+  // Add click event listener for color change
+  colorButton.addEventListener('click', function() {
+    const newColor = getRandomColor();
+    document.body.style.backgroundColor = newColor;
+    console.log('Background color changed to: ' + newColor);
+  });
+  
+  // Add click event listener for logging
+  logButton.addEventListener('click', function() {
+    console.log('This is a regular log message');
+    console.info('This is an info message');
+    console.warn('This is a warning message');
+    console.error('This is an error message');
+  });
+  
+  // Function to generate random color
+  function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+  
+  console.log('Page loaded successfully!');
+});`;
+
+    // Initialize CodeMirror editors
+    const htmlEditor = CodeMirror(document.getElementById('html-editor'), {
+      value: defaultHTML,
+      mode: 'htmlmixed',
+      theme: 'dracula',
+      lineNumbers: true,
+      autoCloseTags: true,
+      autoCloseBrackets: true
+    });
+
+    const cssEditor = CodeMirror(document.getElementById('css-editor'), {
+      value: defaultCSS,
+      mode: 'css',
+      theme: 'dracula',
+      lineNumbers: true,
+      autoCloseBrackets: true
+    });
+
+    const jsEditor = CodeMirror(document.getElementById('js-editor'), {
+      value: defaultJS,
+      mode: 'javascript',
+      theme: 'dracula',
+      lineNumbers: true,
+      autoCloseBrackets: true
+    });
+
+    // Console elements
+    const consoleBody = document.getElementById('console-body');
+    const consoleHeader = document.getElementById('console-header');
+    const consoleInputContainer = document.getElementById('console-input-container');
+    const consoleInput = document.getElementById('console-input');
+    let isConsoleCollapsed = false;
+    let previewFrame = null;
+
+    // Toggle console collapse
+    consoleHeader.addEventListener('click', function(e) {
+      if (e.target === this || e.target.tagName !== 'BUTTON') {
+        isConsoleCollapsed = !isConsoleCollapsed;
+        consoleBody.classList.toggle('collapsed', isConsoleCollapsed);
+        consoleInputContainer.classList.toggle('visible', !isConsoleCollapsed);
+      }
+    });
+
+    // Clear console
+    document.getElementById('console-clear').addEventListener('click', function(e) {
+      e.stopPropagation();
+      consoleBody.innerHTML = '<div class="log-item">Console cleared</div>';
+    });
+
+    // Console input execution
+    document.getElementById('console-run').addEventListener('click', executeConsoleCommand);
+    consoleInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        executeConsoleCommand();
+      }
+    });
+
+    function executeConsoleCommand() {
+      const command = consoleInput.value.trim();
+      if (!command) return;
+      
+      // Log the command to the console
+      const logItem = document.createElement('div');
+      logItem.className = 'log-item log-command';
+      logItem.textContent = '> ' + command;
+      consoleBody.appendChild(logItem);
+      
+      if (previewFrame && previewFrame.contentWindow) {
+        try {
+          // Execute the command in the iframe's context
+          const result = previewFrame.contentWindow.eval(command);
+          
+          // Log the result
+          const resultItem = document.createElement('div');
+          resultItem.className = 'log-item log-result';
+          
+          if (result === undefined) {
+            resultItem.textContent = '< undefined';
+          } else if (result === null) {
+            resultItem.textContent = '< null';
+          } else if (typeof result === 'object') {
+            try {
+              resultItem.textContent = '< ' + JSON.stringify(result);
+            } catch (e) {
+              resultItem.textContent = '< [Object]';
+            }
+          } else {
+            resultItem.textContent = '< ' + result;
+          }
+          
+          consoleBody.appendChild(resultItem);
+        } catch (error) {
+          // Log any errors
+          const errorItem = document.createElement('div');
+          errorItem.className = 'log-item log-error';
+          errorItem.textContent = 'Error: ' + error.message;
+          consoleBody.appendChild(errorItem);
+        }
+      } else {
+        const errorItem = document.createElement('div');
+        errorItem.className = 'log-item log-error';
+        errorItem.textContent = 'Error: Preview frame not initialized';
+        consoleBody.appendChild(errorItem);
+      }
+      
+      // Clear input and scroll to bottom
+      consoleInput.value = '';
+      consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+
+    // Debounce function for efficient preview updates
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    // Keep track of whether interceptors are set up
+    let isInterceptorSetup = false;
+
+    // Add console message to the console panel
+    function addConsoleMessage(args, type) {
+      const logItem = document.createElement('div');
+      logItem.className = `log-item log-${type}`;
+      
+      // Convert arguments to array and format the message
+      const argsArray = Array.from(args).map(arg => {
+        if (typeof arg === 'object') {
+          return JSON.stringify(arg);
+        }
+        return String(arg);
+      });
+      
+      logItem.textContent = argsArray.join(' ');
+      consoleBody.appendChild(logItem);
+      
+      // Auto-scroll to the bottom
+      consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+
+    // Intercept console logs - improved version
+    function setupConsoleInterceptor(frame) {
+      const contentWindow = frame.contentWindow;
+      
+      if (!contentWindow || isInterceptorSetup) return;
+      
+      // Store original console methods
+      const originalConsole = {
+        log: contentWindow.console.log,
+        info: contentWindow.console.info,
+        warn: contentWindow.console.warn,
+        error: contentWindow.console.error
+      };
+      
+      // Override console methods
+      contentWindow.console.log = function() {
+        addConsoleMessage(arguments, 'log');
+        originalConsole.log.apply(contentWindow.console, arguments);
+      };
+      
+      contentWindow.console.info = function() {
+        addConsoleMessage(arguments, 'info');
+        originalConsole.info.apply(contentWindow.console, arguments);
+      };
+      
+      contentWindow.console.warn = function() {
+        addConsoleMessage(arguments, 'warn');
+        originalConsole.warn.apply(contentWindow.console, arguments);
+      };
+      
+      contentWindow.console.error = function() {
+        addConsoleMessage(arguments, 'error');
+        originalConsole.error.apply(contentWindow.console, arguments);
+      };
+      
+      // Mark interceptors as set up
+      isInterceptorSetup = true;
+    }
+
+    // Run code function
+    function runCode() {
+      // Clear the console first
+      consoleBody.innerHTML = '<div class="log-item"></div>';
+      
+      const html = htmlEditor.getValue();
+      const css = cssEditor.getValue();
+      const js = jsEditor.getValue();
+      
+      const prevFrame = document.getElementById('preview');
+      
+      // Reset interceptor status
+      isInterceptorSetup = false;
+      
+      // Create a new iframe to ensure a clean environment
+      const newFrame = document.createElement('iframe');
+      newFrame.className = 'preview';
+      newFrame.id = 'preview';
+      
+      // Replace the existing iframe
+      prevFrame.parentNode.replaceChild(newFrame, prevFrame);
+      previewFrame = newFrame;
+      
+      const preview = newFrame.contentDocument || newFrame.contentWindow.document;
+      
+      preview.open();
+      preview.write(html);
+      
+      // Add CSS
+      const styleElement = preview.createElement('style');
+      styleElement.textContent = css;
+      preview.head.appendChild(styleElement);
+      
+      // Set up error handling for the preview frame
+      const errorHandler = `
+        window.onerror = function(message, source, lineno, colno, error) {
+          console.error(message + ' (Line: ' + lineno + ', Column: ' + colno + ')');
+          return true;
+        };
+      `;
+      
+      // Add error handler script
+      const errorScript = preview.createElement('script');
+      errorScript.textContent = errorHandler;
+      preview.head.appendChild(errorScript);
+      
+      // Add JavaScript
+      const scriptElement = preview.createElement('script');
+      scriptElement.textContent = js;
+      preview.body.appendChild(scriptElement);
+      
+      preview.close();
+      
+      // Set up console interceptor after the iframe has loaded
+      newFrame.onload = function() {
+        setupConsoleInterceptor(newFrame);
+      };
+      
+      // Show that console has functionality
+      if (!isConsoleCollapsed) {
+        consoleInputContainer.classList.add('visible');
+      }
+    }
+
+    // Create debounced version of runCode
+    const debouncedRunCode = debounce(runCode, 300);
+
+    // Set up auto-refresh by attaching change events to all editors
+    htmlEditor.on('change', debouncedRunCode);
+    cssEditor.on('change', debouncedRunCode);
+    jsEditor.on('change', debouncedRunCode);
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        document.getElementById('html-editor').style.display = 'none';
+        document.getElementById('css-editor').style.display = 'none';
+        document.getElementById('js-editor').style.display = 'none';
+        
+        const tabName = tab.getAttribute('data-tab');
+        document.getElementById(`${tabName}-editor`).style.display = 'block';
+        
+        if (tabName === 'html') htmlEditor.refresh();
+        else if (tabName === 'css') cssEditor.refresh();
+        else if (tabName === 'js') jsEditor.refresh();
+      });
+    });
+
+    // Initial display
+    document.getElementById('html-editor').style.display = 'block';
+
+    // Clear all editors
+    function clearAll() {
+      if (confirm('Are you sure you want to clear all code?')) {
+        htmlEditor.setValue('');
+        cssEditor.setValue('');
+        jsEditor.setValue('');
+        runCode();
+      }
+    }
+
+    // Event listeners
+    document.getElementById('run-btn').addEventListener('click', runCode);
+    document.getElementById('refresh-btn').addEventListener('click', runCode);
+    document.getElementById('clear-btn').addEventListener('click', clearAll);
+
+    // Initial code execution
+    window.onload = runCode;
+  </script>
+</body>
+</html>
