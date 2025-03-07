@@ -916,4 +916,36 @@ consoleHeader.addEventListener('touchstart', function(e) {
       tab.classList.add('active');
 
       document.getElementById('html-editor').style.display = 'none';
-      document.getElementById('css-editor').style.
+      document.getElementById('css-editor').style.display = 'none';
+      document.getElementById('js-editor').style.display = 'none';
+
+      const tabName = tab.getAttribute('data-tab');
+      document.getElementById(`${tabName}-editor`).style.display = 'block';
+
+      // No need to refresh Ace editors explicitly, they handle it
+    });
+  });
+
+  // Initial display
+  document.getElementById('html-editor').style.display = 'block';
+
+  // Clear all editors
+  function clearAll() {
+    if (confirm('Are you sure you want to clear all code?')) {
+      htmlEditor.setValue('');
+      cssEditor.setValue('');
+      jsEditor.setValue('');
+      runCode();
+    }
+  }
+
+  // Event listeners
+  document.getElementById('run-btn').addEventListener('click', runCode);
+  document.getElementById('refresh-btn').addEventListener('click', runCode);
+  document.getElementById('clear-btn').addEventListener('click', clearAll);
+
+  // Initial code execution
+  window.onload = runCode;
+</script>
+</body>
+</html>
