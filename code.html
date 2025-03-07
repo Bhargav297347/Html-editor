@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Code Editor</title>
-  <!-- Ace Editor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ace.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ext-language_tools.js"></script>  <!-- For Autocomplete -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ext-error_marker.js"></script> <!-- For Error Highlighting -->
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ext-language_tools.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ext-error_marker.js"></script> 
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
   <style>
@@ -56,19 +54,18 @@
       flex: 1;
       overflow: hidden;
     }
-    /*  Styles for Ace Editor (adjust as needed) */
     .ace_editor {
         height: 100%;
         width: 100%;
-        /*  Important for Ace to fill the container */
+        font-weight: 600 !important;
+      background-color: #111 !important;
     }
      #html-editor,
     #css-editor,
     #js-editor {
-      position: relative; /* Needed for Ace to size correctly */
+      position: relative;
       height: 100%;
     }
-
     .preview-container {
       flex: 1;
       display: flex;
@@ -412,21 +409,17 @@
           <div class="tab" data-tab="css">CSS</div>
           <div class="tab" data-tab="js">JavaScript</div>
         </div>
-
         <div class="editor" id="html-editor"></div>
         <div class="editor" id="css-editor" style="display: none;"></div>
         <div class="editor" id="js-editor" style="display: none;"></div>
       </div>
-
       <div class="preview-container">
-        <!-- Browser-like navbar -->
         <div class="browser-navbar">
           <div class="browser-address-bar"><ion-icon name="lock-closed-outline"></ion-icon> https://preview.localhost/</div>
           <div class="browser-buttons">
             <button id="refresh-btn" class="button">Refresh</button>
             <button id="run-btn" class="button">Run Code</button>
             <button id="clear-btn" class="button clear">Clear All</button>
-            <!-- Make auto-refresh clickable -->
             <div class="auto-refresh-status" id="auto-refresh-toggle">
               <span class="status-indicator"></span>
               <span id="auto-refresh-text">Auto-refresh On</span>
@@ -442,7 +435,6 @@
           <div class="console-body" id="console-body">
               <div class="log-item"></div>
           </div>
-          <!-- Console input area - only visible when console is expanded -->
           <div class="console-input-container" id="console-input-container">
               <span class="console-prompt">></span>
               <input type="text" class="console-input" id="console-input" placeholder="Enter Console Commands" />
@@ -452,10 +444,7 @@
       </div>
     </div>
   </div>
-
   <script>
-    // --- (Previous JavaScript) ---
-    // Default code samples
     const defaultHTML = `<!DOCTYPE html>
 <html>
 <head>
@@ -526,15 +515,11 @@ logButton.addEventListener('click', function() {
 
   console.log('Page loaded successfully!');
 });`;
-
-
-
-// --- Ace Editor Initialization ---
 function initAceEditor(id, mode, defaultValue) {
     const editor = ace.edit(id);
-    editor.setTheme("ace/theme/monokai"); // Use a dark theme
+    editor.setTheme("ace/theme/github_dark");
     editor.session.setMode(`ace/mode/${mode}`);
-    editor.setValue(defaultValue, 1); // Set initial value and move cursor to end
+    editor.setValue(defaultValue, 1);
     editor.setOptions({
         enableBasicAutocompletion: true,
         enableLiveAutocompletion: true,
@@ -548,84 +533,64 @@ const htmlEditor = initAceEditor("html-editor", "html", defaultHTML);
 const cssEditor = initAceEditor("css-editor", "css", defaultCSS);
 const jsEditor = initAceEditor("js-editor", "javascript", defaultJS);
 
-// --- Console and Auto-Refresh Logic ---
     const consoleBody = document.getElementById('console-body');
     const consoleHeader = document.getElementById('console-header');
     const consoleInputContainer = document.getElementById('console-input-container');
     const consoleInput = document.getElementById('console-input');
     const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
     const autoRefreshText = document.getElementById('auto-refresh-text');
-    const statusIndicator = document.querySelector('.status-indicator');  // Get the indicator
-    let isConsoleCollapsed = true; // Initially collapsed
-    let autoRefreshEnabled = true; // Initially enabled
+    const statusIndicator = document.querySelector('.status-indicator');
+    let isConsoleCollapsed = true;
+    let autoRefreshEnabled = true;
     let previewFrame = null;
-    let initialConsoleHeight = 100; // Store initial height.  VERY IMPORTANT.
-
-    // Apply initial collapsed state
+    let initialConsoleHeight = 100;
+    
     consoleBody.classList.add('collapsed');
-    consoleInputContainer.classList.toggle('visible', !isConsoleCollapsed); //should be false
-
-
-// --- Console Resizing Logic ---
+    consoleInputContainer.classList.toggle('visible', !isConsoleCollapsed);
 
 let isResizing = false;
 let startY = 0;
 let startHeight = 0;
 
 consoleHeader.addEventListener('mousedown', function(e) {
-    // Only start resizing if the click is on the header itself, not buttons within it
-    if (e.target === this || e.target.tagName === 'SPAN') { // Allow resizing if click is on header or span inside
+    if (e.target === this || e.target.tagName === 'SPAN') {
       isResizing = true;
       startY = e.clientY;
-      startHeight = parseInt(consoleBody.style.height, 10) || initialConsoleHeight; // Get current or initial
-        // Prevent text selection during drag
+      startHeight = parseInt(consoleBody.style.height, 10) || initialConsoleHeight;
         e.preventDefault();
     }
 });
 
-// Use 'window' for mousemove and mouseup to handle cases where the mouse leaves the header
 window.addEventListener('mousemove', function(e) {
     if (!isResizing) return;
-
-    const deltaY = startY - e.clientY;  // Inverted for upward movement
-    const newHeight = Math.max(0, startHeight + deltaY); // Ensure height is not negative
-
+    const deltaY = startY - e.clientY; 
+    const newHeight = Math.max(0, startHeight + deltaY);
     consoleBody.style.height = `${newHeight}px`;
-
-    // If height becomes 0, treat as collapse.  If it goes above 0, uncollapse.
     isConsoleCollapsed = (newHeight === 0);
     consoleBody.classList.toggle('collapsed', isConsoleCollapsed);
     consoleInputContainer.classList.toggle('visible', !isConsoleCollapsed);
-
 });
-
 window.addEventListener('mouseup', function(e) {
   if (isResizing) {
     isResizing = false;
-      // Get the final height after resizing and update initialConsoleHeight if not collapsed
     if (!isConsoleCollapsed) {
             initialConsoleHeight = parseInt(consoleBody.style.height, 10);
     }
   }
 });
-
-// Touch event handlers for mobile
 consoleHeader.addEventListener('touchstart', function(e) {
      if (e.target === this || e.target.tagName === 'SPAN') {
           isResizing = true;
           startY = e.touches[0].clientY;
           startHeight = parseInt(consoleBody.style.height, 10) || initialConsoleHeight;
-          e.preventDefault(); // Prevent scrolling while resizing
+          e.preventDefault();
      }
 });
   window.addEventListener('touchmove', function(e) {
     if (!isResizing) return;
-
     const deltaY = startY - e.touches[0].clientY;
     const newHeight = Math.max(0, startHeight + deltaY);
-
     consoleBody.style.height = `${newHeight}px`;
-
      isConsoleCollapsed = (newHeight === 0);
     consoleBody.classList.toggle('collapsed', isConsoleCollapsed);
     consoleInputContainer.classList.toggle('visible', !isConsoleCollapsed);
@@ -638,62 +603,42 @@ consoleHeader.addEventListener('touchstart', function(e) {
           }
         }
     });
-
-
-    // Toggle console collapse
   consoleHeader.addEventListener('click', function(e) {
-      // Only toggle collapse if NOT resizing AND the click target is the header or a span within it.
     if (!isResizing && (e.target === this || e.target.tagName === 'SPAN')) {
-        //Determine the state based on the height
         isConsoleCollapsed = consoleBody.style.height === "0px";
-
         if (isConsoleCollapsed){
-            //If the console is collapsed we want to expand it.
             consoleBody.style.height = `${initialConsoleHeight}px`;
              consoleBody.classList.remove('collapsed');
              consoleInputContainer.classList.add('visible');
         } else {
-           //If the console is uncollapsed, collapse it.
            consoleBody.style.height = '0px';
            consoleBody.classList.add('collapsed');
            consoleInputContainer.classList.remove('visible');
-
         }
-
     }
   });
-
-    // Clear console
     document.getElementById('console-clear').addEventListener('click', function(e) {
       e.stopPropagation();
       consoleBody.innerHTML = '<div class="log-item">Console cleared</div>';
     });
-
-    // Console input execution
     document.getElementById('console-run').addEventListener('click', executeConsoleCommand);
     consoleInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         executeConsoleCommand();
       }
     });
-
     function executeConsoleCommand() {
         const command = consoleInput.value.trim();
         if (!command) return;
-
         const logItem = document.createElement('div');
         logItem.className = 'log-item log-command';
          logItem.innerHTML = `<span class="log-content">> ${command}</span><span class="log-prefix">vm478734.js</span>`; // Right-side prefix
         consoleBody.appendChild(logItem);
-
-
         if (previewFrame && previewFrame.contentWindow) {
             try {
                 const result = previewFrame.contentWindow.eval(command);
-
                  const resultItem = document.createElement('div');
                 resultItem.className = 'log-item log-result';
-
                 let resultText = '< ';
                 if (result === undefined) {
                     resultText += 'undefined';
@@ -708,10 +653,8 @@ consoleHeader.addEventListener('touchstart', function(e) {
                 } else {
                     resultText += result;
                 }
-
                 resultItem.innerHTML = `<span class="log-content">${resultText}</span><span class="log-prefix">vm478734.js</span>`; // Right-side prefix
                 consoleBody.appendChild(resultItem);
-
             } catch (error) {
                 const errorItem = document.createElement('div');
                 errorItem.className = 'log-item log-error';
@@ -724,13 +667,9 @@ consoleHeader.addEventListener('touchstart', function(e) {
             errorItem.innerHTML = `<span class="log-icon"><ion-icon name="close-circle-outline"></ion-icon></span><span class="log-content">Error: Preview Frame not initialized</span><span class="log-prefix">vm478734.js</span>`;
             consoleBody.appendChild(errorItem);
         }
-
         consoleInput.value = '';
         consoleBody.scrollTop = consoleBody.scrollHeight;
     }
-
-
-    // Debounce function for efficient preview updates
     function debounce(func, delay) {
       let timeoutId;
       return function(...args) {
@@ -738,15 +677,10 @@ consoleHeader.addEventListener('touchstart', function(e) {
         timeoutId = setTimeout(() => func.apply(this, args), delay);
       };
     }
-
-
-     // Keep track of whether interceptors are set up
     let isInterceptorSetup = false;
-    // Add console message to the console panel, with icons
     function addConsoleMessage(args, type) {
         const logItem = document.createElement('div');
         logItem.className = `log-item log-${type}`;
-
         let iconName = '';
         switch (type) {
             case 'info':
@@ -759,71 +693,56 @@ consoleHeader.addEventListener('touchstart', function(e) {
                 iconName = 'close-circle-outline';
                 break;
             default:
-                iconName = 'ellipse-outline'; // Or any other default icon
+                iconName = 'ellipse-outline';
         }
-
           const argsArray = Array.from(args).map(arg => {
             if (typeof arg === 'object') {
                 try {
-                    return JSON.stringify(arg, null, 2); // Pretty-print objects
+                    return JSON.stringify(arg, null, 2);
                 } catch (e) {
-                    return '[Object]'; // Handle circular references
+                    return '[Object]';
                 }
             }
-            return String(arg); // Convert everything else to strings
+            return String(arg);
         });
-        // Right-aligned prefix
         logItem.innerHTML = `<span class="log-icon"><ion-icon name="${iconName}"></ion-icon></span><span class="log-content">${argsArray.join(' ')}</span><span class="log-prefix">local.js</span>`;
         consoleBody.appendChild(logItem);
         consoleBody.scrollTop = consoleBody.scrollHeight;
     }
-
-    // Intercept console logs - improved version
     function setupConsoleInterceptor(frame) {
       const contentWindow = frame.contentWindow;
-
       if (!contentWindow || isInterceptorSetup) return;
-
-      // Store original console methods
       const originalConsole = {
         log: contentWindow.console.log,
         info: contentWindow.console.info,
         warn: contentWindow.console.warn,
         error: contentWindow.console.error
       };
-
-      // Override console methods
       contentWindow.console.log = function() {
         addConsoleMessage(arguments, 'log');
         originalConsole.log.apply(contentWindow.console, arguments);
       };
-
       contentWindow.console.info = function() {
         addConsoleMessage(arguments, 'info');
         originalConsole.info.apply(contentWindow.console, arguments);
       };
-
       contentWindow.console.warn = function() {
         addConsoleMessage(arguments, 'warn');
         originalConsole.warn.apply(contentWindow.console, arguments);
       };
-
       contentWindow.console.error = function() {
         addConsoleMessage(arguments, 'error');
         originalConsole.error.apply(contentWindow.console, arguments);
       };
-      // Mark interceptors as set up
       isInterceptorSetup = true;
     }
-    // Auto-refresh toggle functionality
     autoRefreshToggle.addEventListener('click', () => {
       autoRefreshEnabled = !autoRefreshEnabled;
       if (autoRefreshEnabled) {
         autoRefreshText.textContent = 'Auto-refresh On';
         statusIndicator.classList.remove('off');
-        statusIndicator.style.backgroundColor = '#27c93f'; //back to green
-                // Re-enable auto-refresh
-                statusIndicator.style.animation = 'pulse 1.5s infinite ease-in-out'; // Add the animation back
+        statusIndicator.style.backgroundColor = '#27c93f';
+        statusIndicator.style.animation = 'pulse 1.5s infinite ease-in-out';
         htmlEditor.on('change', debouncedRunCode);
         cssEditor.on('change', debouncedRunCode);
         jsEditor.on('change', debouncedRunCode);
@@ -838,39 +757,24 @@ consoleHeader.addEventListener('touchstart', function(e) {
         jsEditor.off('change', debouncedRunCode);
       }
     });
-
-
-    // Run code function
    function runCode() {
-    // Clear the console first
     consoleBody.innerHTML = '<div class="log-item"></div>';
-
     const html = htmlEditor.getValue();
     const css = cssEditor.getValue();
     const js = jsEditor.getValue();
-
     const prevFrame = document.getElementById('preview');
-    isInterceptorSetup = false; // Reset for the new iframe
-
-    // Create new iframe
+    isInterceptorSetup = false;
     const newFrame = document.createElement('iframe');
     newFrame.className = 'preview';
     newFrame.id = 'preview';
-    prevFrame.parentNode.replaceChild(newFrame, prevFrame);  // Replace in DOM
-    previewFrame = newFrame; // Update reference
-
-
+    prevFrame.parentNode.replaceChild(newFrame, prevFrame);
+    previewFrame = newFrame;
     const preview = newFrame.contentDocument || newFrame.contentWindow.document;
-
     preview.open();
     preview.write(html);
-
-    // Add CSS
     const styleElement = preview.createElement('style');
     styleElement.textContent = css;
     preview.head.appendChild(styleElement);
-
-        // --- Error Handling ---
     const errorHandler = `
       window.onerror = function(message, source, lineno, colno, error) {
         console.error(message + ' (Line: ' + lineno + ', Column: ' + colno + ')');
@@ -880,56 +784,36 @@ consoleHeader.addEventListener('touchstart', function(e) {
     const errorScript = preview.createElement('script');
     errorScript.textContent = errorHandler;
     preview.head.appendChild(errorScript);
-
-    // Add JavaScript
     const scriptElement = preview.createElement('script');
     scriptElement.textContent = js;
     preview.body.appendChild(scriptElement);
-
     preview.close();
-
-    // Setup console interceptor *after* iframe content is loaded
     newFrame.onload = function() {
       setupConsoleInterceptor(newFrame);
     }
-     // Show that console has functionality
      if (!isConsoleCollapsed) {
     consoleInputContainer.classList.add('visible');
      }
-}
-
-  // Create debounced version of runCode
+   }
   const debouncedRunCode = debounce(runCode, 300);
-// Set up auto-refresh by attaching change events to all editors
-  // Conditionally attach based on autoRefreshEnabled
   if (autoRefreshEnabled) {
     htmlEditor.on('change', debouncedRunCode);
     cssEditor.on('change', debouncedRunCode);
     jsEditor.on('change', debouncedRunCode);
   }
-
-  // Tab switching
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-
       document.getElementById('html-editor').style.display = 'none';
       document.getElementById('css-editor').style.display = 'none';
       document.getElementById('js-editor').style.display = 'none';
-
       const tabName = tab.getAttribute('data-tab');
       document.getElementById(`${tabName}-editor`).style.display = 'block';
-
-      // No need to refresh Ace editors explicitly, they handle it
     });
   });
-
-  // Initial display
   document.getElementById('html-editor').style.display = 'block';
-
-  // Clear all editors
   function clearAll() {
     if (confirm('Are you sure you want to clear all code?')) {
       htmlEditor.setValue('');
@@ -938,13 +822,9 @@ consoleHeader.addEventListener('touchstart', function(e) {
       runCode();
     }
   }
-
-  // Event listeners
   document.getElementById('run-btn').addEventListener('click', runCode);
   document.getElementById('refresh-btn').addEventListener('click', runCode);
   document.getElementById('clear-btn').addEventListener('click', clearAll);
-
-  // Initial code execution
   window.onload = runCode;
 </script>
 </body>
