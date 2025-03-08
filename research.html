@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <style>
+        .container-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .markdown h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown p {
+            margin-bottom: 1rem;
+        }
+        .markdown ul, .markdown ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .markdown ul {
+            list-style-type: disc;
+        }
+        .markdown ol {
+            list-style-type: decimal;
+        }
+        .markdown a {
+            color: #111827;
+            text-decoration: underline;
+        }
+        .markdown code {
+            background-color: #f5f5f5;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+        }
+        .markdown pre {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        .monochrome-bg {
+            background: linear-gradient(135deg, #111827 0%, #374151 100%);
+        }
+        .panel-heading {
+            border-bottom: 2px solid #f3f4f6;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+        }
+        .search-result {
+            transition: all 0.2s ease;
+        }
+        .search-result:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .favicon {
+            width: 16px;
+            height: 16px;
+            object-fit: cover;
+            border-radius: 2px;
+        }
+        .content-container {
+            height: calc(100% - 3rem); /* Account for header height + padding */
+            max-height: 100%;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-6">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Left Container - AI Response -->
+            <div class="bg-white rounded-xl container-shadow p-5 h-[80vh] flex flex-col">
+                <div class="panel-heading flex items-center">
+                    <div class="w-8 h-8 rounded-full monochrome-bg flex items-center justify-center mr-3">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">Assistant</h2>
+                </div>
+                <div id="responseContainer" class="flex-grow overflow-y-auto scrollbar-thin p-3 mb-4 bg-gray-50 rounded-lg">
+                    <p class="text-gray-500 italic">The AI response will appear here...</p>
+                </div>
+                <div class="mt-auto">
+                    <div class="relative">
+                        <input type="text" id="userPrompt" class="w-full p-4 pr-16 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 shadow-sm" placeholder="Enter your research topic...">
+                        <button id="sendButton" class="absolute right-3 top-1/2 transform -translate-y-1/2 monochrome-bg text-white p-2 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div id="loading" class="hidden mt-3 text-center">
+                        <div class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-800"></div>
+                        <span class="ml-2 text-sm text-gray-600">Processing your request...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Container - Research Results -->
+            <div class="bg-white rounded-xl container-shadow p-5 h-[80vh] md:col-span-1 flex flex-col">
+                <div class="panel-heading flex items-center">
+                    <div class="w-8 h-8 rounded-full monochrome-bg flex items-center justify-center mr-3">
+                        <i class="fas fa-file-alt text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">Research</h2>
+                </div>
+                <div id="researchContainer" class="markdown flex-grow overflow-y-auto scrollbar-thin p-3 bg-gray-50 rounded-lg">
+                    <p class="text-gray-500 italic">Detailed research will appear here...</p>
+                </div>
+            </div>
+
+            <!-- Right Container - Web Search Results -->
+            <div class="bg-white rounded-xl container-shadow p-5 h-[80vh] flex flex-col">
+                <div class="panel-heading flex items-center">
+                    <div class="w-8 h-8 rounded-full monochrome-bg flex items-center justify-center mr-3">
+                        <i class="fas fa-search text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">Sources</h2>
+                </div>
+                <div id="searchResultsContainer" class="flex-grow overflow-y-auto scrollbar-thin p-3 bg-gray-50 rounded-lg">
+                    <p class="text-gray-500 italic">Search results will appear here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const userPromptInput = document.getElementById('userPrompt');
+    const sendButton = document.getElementById('sendButton');
+    const responseContainer = document.getElementById('responseContainer');
+    const researchContainer = document.getElementById('researchContainer');
+    const searchResultsContainer = document.getElementById('searchResultsContainer');
+    const loadingIndicator = document.getElementById('loading');
+
+    // ---  Placeholder API Keys (Replace with your actual keys) ---
+    const GEMINI_API_KEY = "AIzaSyAGDighnmGYQfXhKlql6W3AKKpDtMlYCas";  // Get from Google AI Studio
+    const GOOGLE_SEARCH_API_KEY = "AIzaSyD4uHK50N9fQgqBldQfKuZKiJ0L-C0jM_Q"; // Get from Google Custom Search JSON API
+    const GOOGLE_SEARCH_CX = "12db16d5b0a824e70";    //  Your Custom Search Engine ID
+
+    // --- Event Listener for Submit Button ---
+    sendButton.addEventListener("click", async () => {
+        const topic = userPromptInput.value.trim();
+        if (!topic) {
+            alert("Please enter a research topic.");
+            return;
+        }
+
+        // Disable input and button, show loading indicator
+        userPromptInput.disabled = true;
+        sendButton.disabled = true;
+        loadingIndicator.classList.remove('hidden');
+        clearContainers(); // Clear previous results
+
+        try {
+            await performResearch(topic);
+        } catch (error) {
+            console.error("Error during research:", error);
+            displayInitialResponse(`Error: ${error.message}`);
+        } finally {
+            // Re-enable input and button, hide loading indicator
+            userPromptInput.disabled = false;
+            sendButton.disabled = false;
+            loadingIndicator.classList.add('hidden');
+        }
+    });
+
+    // --- Event Listener for Enter Key in Input ---
+    userPromptInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendButton.click(); // Trigger the button click event
+        }
+    });
+
+    // --- Main Research Function ---
+    async function performResearch(topic) {
+        displayInitialResponse("Performing initial research...");
+        const { initialResponse, searchQueries } = await getInitialGeminiResponse(topic);
+        displayInitialResponse(initialResponse);
+
+        displayInitialResponse("Fetching search results...");
+        const searchResults = await performGoogleSearch(searchQueries);
+        displaySearchResults(searchResults);
+
+        displayInitialResponse("Generating detailed research...");
+        const finalResponse = await getFinalGeminiResponse(topic, searchResults); // Pass topic directly
+        displayInitialResponse(finalResponse.response);
+        renderMarkdown(finalResponse.result);
+    }
+
+    // --- Gemini API Interaction Functions ---
+    async function getInitialGeminiResponse(topic) {
+        const initialPrompt = `
+You are a research assistant. Your task is to help users conduct in-depth research on a given topic.
+
+1.  **Initial Response:** Provide a brief, helpful initial response to the user acknowledging their request.  This should be conversational and reassuring.  Include this *only* in the first response.
+2.  **Search Queries:** Generate *one* Google search query at a time that will yield relevant and authoritative results. Generate a total of 5 queries, but each query should be generated and returned individually. Consider different aspects of the topic and use specific keywords.
+3.  **Output Format (First Response):**
+    \`\`\`json
+    {
+      "response": ["<Initial response string>"],
+      "search": "<Search query>"
+    }
+    \`\`\`
+    **Output Format (Subsequent Responses):**
+     \`\`\`json
+    {
+      "search": "<Search query>"
+    }
+    \`\`\`
+
+**Constraints and Restrictions:**
+
+*   **Do not** generate harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.
+*   **Do not** reveal any personal information (yours or others').
+*   **Do not** engage in roleplay or pretend to be a person.  You are a research assistant.
+*   **Do not** make claims about the future or predict events. Focus on established facts and credible sources.
+*   **Do not** generate code or perform tasks outside of generating responses and search queries.
+*   Include an initial response *only* in the first JSON response. Subsequent responses should *only* contain the "search" key and the search query.
+* **Focus** the search queries on retrieving factual information, definitions, explanations, scholarly articles, and reputable news sources. *Avoid* queries that would primarily return opinions, blog posts, or social media content.
+* **Strictly adhere** to the specified JSON format.  Do *not* include any other fields or information in the JSON responses.
+
+Here is the topic: ${topic}
+`;
+
+        const nextQueryPrompt = `Give me the next search query.  Provide ONLY the JSON, adhering strictly to the format { "search": "<Search query>" }, and nothing else.`;
+
+        const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const allSearchQueries = [];
+        let initialResponseText = ""; // To store the initial response
+
+        // First request (with initial response)
+        let requestBody = {
+            contents: [{
+                role: "user",
+                parts: [{ text: initialPrompt }]
+            }],
+        };
+
+        let response = await fetch(geminiURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Gemini API Error (Initial):", errorData);
+            throw new Error(`Gemini API Error (Initial): ${response.status} - ${errorData.error?.message || response.statusText}`);
+        }
+
+        let data = await response.json();
+        let generatedText = data.candidates[0]?.content?.parts[0]?.text ?? '';
+        // Remove markdown code block delimiters if present
+        generatedText = generatedText.replace(/```json\n?|```/g, '');
+        try {
+            let parsedResponse = JSON.parse(generatedText);
+            if (!parsedResponse.response || !Array.isArray(parsedResponse.response) || !parsedResponse.search || typeof parsedResponse.search !== 'string') {
+                console.error("Invalid JSON format from Gemini (initial):", generatedText);
+                throw new Error("Invalid response format from Gemini. Expected 'response' array and 'search' string.");
+            }
+
+            initialResponseText = parsedResponse.response.join("\n");
+            allSearchQueries.push(parsedResponse.search);
+
+        } catch (parseError) {
+            console.error("JSON Parse Error (Initial):", parseError, "Original text:", generatedText);
+            throw new Error("Failed to parse JSON response from Gemini (Initial).");
+        }
+
+
+        // Subsequent requests (only search queries)
+        for (let i = 0; i < 4; i++) { // Get 4 more queries
+            requestBody = {
+                contents: [{
+                    role: "user",
+                    parts: [{ text: nextQueryPrompt }]
+                }],
+            };
+
+            response = await fetch(geminiURL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Gemini API Error (Subsequent):", errorData);
+                throw new Error(`Gemini API Error (Subsequent): ${response.status} - ${errorData.error?.message || response.statusText}`);
+            }
+
+            data = await response.json();
+            generatedText = data.candidates[0]?.content?.parts[0]?.text ?? '';
+            generatedText = generatedText.replace(/```json\n?|```/g, ''); // Remove code blocks
+            //More robust extraction
+            try {
+                let parsedResponse;
+                try {
+                    parsedResponse = JSON.parse(generatedText);
+                } catch (parseError) {
+                    // Attempt to extract JSON using regex
+                    const jsonMatch = generatedText.match(/\{[\s\S]*\}/); // More permissive regex
+                    if (jsonMatch) {
+                        parsedResponse = JSON.parse(jsonMatch[0]);
+                    } else {
+                        throw new Error("No JSON found in response."); // Specific error
+                    }
+                }
+
+
+                if (!parsedResponse.search || typeof parsedResponse.search !== 'string') {
+                    console.error("Invalid JSON format from Gemini (subsequent):", generatedText);
+                    throw new Error("Invalid response format from Gemini. Expected 'search' string.");
+                }
+                allSearchQueries.push(parsedResponse.search);
+
+            } catch (parseError) {
+                console.error("JSON Parse Error (Subsequent):", parseError, "Original text:", generatedText);
+                throw new Error("Failed to parse JSON response from Gemini (Subsequent).");
+            }
+        }
+
+        return { initialResponse: initialResponseText, searchQueries: allSearchQueries };
+    }
+
+    async function getFinalGeminiResponse(topic, searchResults) {
+        if (!searchResults || searchResults.length === 0) {
+            throw new Error("No search results provided to getFinalGeminiResponse.");
+        }
+
+        const prompt = `
+You are a research assistant.  Your task is to generate a comprehensive research report in Markdown format based on the provided topic and search results.
+
+**Requirements:**
+
+*   **Format:** Markdown. Use headings, subheadings, bullet points, numbered lists, and links.
+*   **Content:**
+    *   Introduction to the topic.
+    *   Synthesize information from the search results (provided separately). Do *not* make up information.
+    *   Organize into logical sections.
+    *   Include relevant details, examples, and explanations.
+    *   Discuss different perspectives or controversies, if applicable.
+    *   Concise conclusion.
+*   **Citations:** Clearly indicate sources (e.g., "According to a report from [Source Domain]..." or "As described in [Article Title]..."). Include links (e.g., \`[Source Title](URL)\`).
+*   **Length:** Substantial and detailed (approximately 500-1000 words, adjust as needed).
+*   **Tone:** Neutral, objective, and informative.
+*   **Output Format:** Return a JSON object:
+
+    \`\`\`json
+    {
+      "response": "Research on '${topic}' is complete. See the Research panel.",
+      "result": "<Full research report in Markdown>"
+    }
+    \`\`\`
+
+**Constraints and Restrictions:**
+
+*   No harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.
+*   No personal information.
+*   No roleplay.
+*   No claims about the future or predictions (unless from credible, cited sources).
+*   No code generation.
+*   No invented information.
+*   Strictly adhere to Markdown.
+
+Topic: ${topic}
+`; // Removed search result repetition
+
+        const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        const searchResultsText = searchResults.map(result => `* **${result.title}**: ${result.snippet} (${result.url})`).join("\n");
+
+        const requestBody = {
+            contents: [{
+                role: "user",
+                parts: [
+                    { text: prompt },
+                    { text: searchResultsText }
+                ]
+            }],
+        };
+
+        const response = await fetch(geminiURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Gemini API Error (Final):", errorData);
+            throw new Error(`Gemini API Error (Final): ${response.status} - ${errorData.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        let generatedText = data.candidates[0]?.content?.parts[0]?.text ?? '';
+
+        // VERY IMPORTANT:  More Robust Markdown/JSON Handling
+        try {
+            // 1.  Attempt to extract a JSON object.  This handles cases where Gemini
+            //     might wrap the JSON in Markdown code blocks, OR if it just
+            //     returns plain Markdown.
+            let jsonString = generatedText;
+            const jsonMatch = generatedText.match(/```json([\s\S]*?)```/); // Check for JSON code block
+            if (jsonMatch && jsonMatch[1]) {
+                jsonString = jsonMatch[1].trim(); // Extract *only* the JSON
+            }
+
+            let parsedResponse;
+            try {
+              parsedResponse = JSON.parse(jsonString);
+            }
+            catch(e){
+              const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                parsedResponse = JSON.parse(jsonMatch[0]);
+               }
+            }
+
+
+            // 2. Validate the parsed JSON (if we found some)
+            if (parsedResponse && parsedResponse.response && typeof parsedResponse.response === 'string' && parsedResponse.result && typeof parsedResponse.result === 'string') {
+                return parsedResponse;  //  Return the parsed JSON
+            } else if (parsedResponse && (!parsedResponse.response ||  typeof parsedResponse.response !== 'string' || !parsedResponse.result || typeof parsedResponse.result !== 'string')) {
+              console.error("Invalid final JSON format from Gemini:", generatedText)
+              throw new Error("Invalid response format from Gemini.  Expected 'response' and 'result' strings.");
+
+            } else {
+                // 3. If no valid JSON, assume it's all Markdown
+                return {
+                    response: `Research on '${topic}' is complete. See the Research panel.`,
+                    result: generatedText  // Return the *entire* text as Markdown
+                };
+            }
+        } catch (parseError) {
+            console.error("JSON Parse Error (Final):", parseError, "Original text:", generatedText);
+            throw new Error("Failed to parse JSON response from Gemini (final response).");
+        }
+    }
+
+    // --- Google Search API Interaction Function ---
+    async function performGoogleSearch(queries) {
+        const allResults = [];
+
+        for (const query of queries) {
+            const googleSearchURL = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_SEARCH_API_KEY}&cx=${GOOGLE_SEARCH_CX}&q=${encodeURIComponent(query)}`;
+
+            try {
+                const response = await fetch(googleSearchURL);
+                if (!response.ok) {
+                    console.error(`Google Search Error for query "${query}": ${response.status} - ${response.statusText}`);
+                    continue;
+                }
+
+                const data = await response.json();
+                if (data.items) {
+                    data.items.forEach(item => {
+                        // Extract domain from URL for favicon
+                        const url = new URL(item.link);
+                        const domain = url.hostname;
+                        const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+
+                        allResults.push({
+                            title: item.title,
+                            url: item.link,   // Use 'url' consistently
+                            domain: domain,
+                            snippet: item.snippet,
+                            favicon: faviconUrl
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error(`Error fetching search results for query "${query}":`, error);
+            }
+        }
+        return allResults.slice(0, 10);
+    }
+
+    // --- UI Update Functions ---
+    function displayInitialResponse(message) {
+        const responseElement = document.createElement("div");
+        responseElement.classList.add("p-4", "bg-indigo-50", "rounded-lg", "mb-3", "border-l-4", "border-indigo-400");
+        responseElement.innerHTML = `<p class="font-medium text-gray-800">${message}</p>`;
+        responseContainer.appendChild(responseElement);
+    }
+
+    function displaySearchResults(results) {
+        searchResultsContainer.innerHTML = `
+            <div class="mb-3 pb-2 border-b border-gray-200">
+                <p class="text-sm text-gray-500">About ${results.length} results</p>
+            </div>
+        `;
+
+        results.forEach(result => {
+            const resultElement = document.createElement("div");
+            resultElement.classList.add("mb-5", "p-3", "search-result", "hover:bg-gray-100", "rounded-lg", "transition-all");
+            resultElement.innerHTML = `
+                <div class="flex items-center mb-1">
+                    <img src="${result.favicon}" alt="" class="favicon mr-2">
+                    <span class="text-gray-600 text-xs">${result.domain}</span>
+                </div>
+                <a href="${result.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-lg font-medium block">${result.title}</a>
+                <p class="text-green-700 text-sm">${result.url}</p>
+                <p class="text-gray-700 mt-2 text-sm">${result.snippet}</p>
+            `;
+            searchResultsContainer.appendChild(resultElement);
+        });
+    }
+
+    function renderMarkdown(markdown) {
+        researchContainer.innerHTML = marked.parse(markdown);
+    }
+
+    function clearContainers() {
+        responseContainer.innerHTML = '<p class="text-gray-500 italic">The AI response will appear here...</p>';
+        researchContainer.innerHTML = '<p class="text-gray-500 italic">Detailed research will appear here...</p>';
+        searchResultsContainer.innerHTML = '<p class="text-gray-500 italic">Search results will appear here...</p>';
+    }
+});
+  </script>
+</body>
+  </html>
