@@ -3,26 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ace Editor with Gemini AI</title>
+    <title>Code Editor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ext-language_tools.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.0/marked.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body { display: flex; height: 100vh; background: #121212; color: white; }
-
-        /* Sidebar */
         #sidebar { width: 250px; background: #1e1e1e; padding: 15px; display: flex; flex-direction: column; }
         #sidebar h3 { margin-bottom: 10px; }
         #prompt { width: 100%; padding: 10px; margin-bottom: 10px; background: #333; color: white; border: none; }
         #ask-btn { padding: 10px; background: #007bff; border: none; color: white; cursor: pointer; }
         #ask-btn:hover { background: #0056b3; }
-
-        /* Editor */
         #editor-container { flex: 1; display: flex; flex-direction: column; padding: 20px; position: relative; }
         #editor { width: 100%; height: 400px; border: 1px solid #444; border-radius: 10px; }
-
-        /* Copy Button */
         #copy-btn {
             position: absolute;
             top: 10px;
@@ -33,18 +27,14 @@
             width: 30px;
             height: 30px;
         }
-
         #copy-btn svg {
             width: 30px;
             height: 30px;
             fill: white;
         }
-
         #copy-btn:hover svg {
             fill: #007bff;
         }
-
-        /* Response Box */
         #response-box {
             display: flex;
             justify-content: center;
@@ -58,8 +48,6 @@
             overflow-y: auto;
             position: relative;
         }
-
-        /* Response Content */
         #response-content {
             width: 70%;
             height: 90%;
@@ -70,15 +58,11 @@
     </style>
 </head>
 <body>
-
-    <!-- Sidebar for Gemini AI Input -->
     <div id="sidebar">
-        <h3>Ask Gemini AI</h3>
+        <h3>Type your prompt</h3>
         <input type="text" id="prompt" placeholder="Ask for code...">
         <button id="ask-btn" onclick="askGemini()">Ask AI</button>
     </div>
-
-    <!-- Editor + AI Response -->
     <div id="editor-container">
         <h2 style="margin: 10px;">Code Editor</h2>
         <button id="copy-btn" onclick="copyToClipboard()">
@@ -89,12 +73,10 @@
         <div id="editor"></div>
         <h3 style="margin: 10px;">Explanation</h3>
         <div id="response-box">
-            <div id="response-content">AI response will appear here...</div>
+            <div id="response-content"></div>
         </div>
     </div>
-
     <script>
-        // Initialize Ace Editor
         var editor = ace.edit("editor");
         editor.setTheme("ace/theme/github_dark");
         editor.session.setMode("ace/mode/javascript");
@@ -103,8 +85,6 @@
             enableLiveAutocompletion: true,
             enableSnippets: true
         });
-
-        // Supported Languages in Ace Editor
         const supportedLanguages = {
             "javascript": "javascript",
             "python": "python",
@@ -121,11 +101,7 @@
             "ruby": "ruby",
             "rust": "rust"
         };
-
-        // Replace with your actual Gemini API Key
         const GEMINI_API_KEY = "AIzaSyAGDighnmGYQfXhKlql6W3AKKpDtMlYCas";
-
-        // Function to fetch code from Gemini AI
         async function askGemini() {
             const prompt = document.getElementById("prompt").value;
             if (!prompt) return alert("Please enter a prompt!");
@@ -136,7 +112,10 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
                         contents: [{ parts: [{ 
-                            text: `Write code for: ${prompt}. Respond with JSON inside a code block:
+                            text: `You are in an code editor platform you are only allowed to respond while following the instructions given to you
+                            instructions:- you will write code inside code arrey nothing else it is purely for code, in language arrey you will specify the programming language, in response arrey younwill responsed to the user.
+                            here's the query:-
+                              Write code for: ${prompt}. Respond with JSON inside a code block:
 \`\`\`json
 {
     "code": "<code_here>",
@@ -153,19 +132,13 @@
                 let jsonString = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
                 let aiResponse = JSON.parse(jsonString);
 
-                // Detect Language & Set Mode
                 let detectedLanguage = aiResponse.language?.toLowerCase() || "javascript";
                 if (supportedLanguages[detectedLanguage]) {
                     editor.session.setMode(`ace/mode/${supportedLanguages[detectedLanguage]}`);
                 }
 
-                // Type AI-generated code with animation
                 typeCode(aiResponse.code || "// No code provided");
-
-                // Format response with Markdown
                 document.getElementById("response-content").innerHTML = marked.parse(aiResponse.response || "No explanation provided.");
-
-                // Auto-scroll response box
                 document.getElementById("response-box").scrollTop = document.getElementById("response-box").scrollHeight;
 
             } catch (error) {
@@ -174,7 +147,6 @@
             }
         }
 
-        // Typing Effect with Smooth Cursor Movement & Auto-Scroll
         function typeCode(code) {
             editor.setValue(""); 
             let index = 0;
@@ -189,7 +161,7 @@
                     editor.gotoLine(line, column);
                     editor.renderer.scrollToLine(line);
                     index++;
-                    setTimeout(type, 5); 
+                    setTimeout(type, 0); 
                 } else {
                     editor.setReadOnly(false);
                 }
@@ -198,12 +170,10 @@
             type();
         }
 
-        // Copy code to clipboard
         function copyToClipboard() {
             navigator.clipboard.writeText(editor.getValue())
                 .then(() => alert("Code copied to clipboard!"));
         }
     </script>
-
 </body>
 </html>
