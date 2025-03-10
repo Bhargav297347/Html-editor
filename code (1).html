@@ -4,365 +4,416 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Editor</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ext-language_tools.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.0/marked.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { display: flex; height: 100vh; background: #121212; color: white; overflow: hidden; }
+        /*  --- Previous CSS ---  */
+/*General Styles */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+body { display: flex; height: 100vh; background: #121212; color: white; overflow: hidden; }
 
-        /* Enhanced Sidebar */
-        #sidebar {
-            width: 300px;
-            background: #1e1e1e;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-            overflow-y: auto; /* Make sidebar scrollable if content overflows */
-            height: 100vh; /* Ensure sidebar takes full viewport height */
-        }
-        #sidebar h3 {
-            margin-bottom: 15px;
-            font-size: 18px;
-            color: #e0e0e0;
-        }
-        #prompt {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: #2a2a2a;
-            color: white;
-            border: 1px solid #444;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-        #prompt:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-        #ask-btn {
-            padding: 12px;
-            background: #007bff;
-            border: none;
-            color: white;
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        #ask-btn:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        #ask-btn:active {
-            transform: translateY(0);
-        }
+/* Enhanced Sidebar */
+#sidebar {
+    width: 300px;
+    background: #1e1e1e;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    overflow-y: auto; /* Make sidebar scrollable */
+    height: 100vh; /* Full viewport height */
+}
+#sidebar h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #e0e0e0;
+}
+#prompt {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: #2a2a2a;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+#prompt:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+#ask-btn {
+    padding: 12px;
+    background: #007bff;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+#ask-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+#ask-btn:active {
+    transform: translateY(0);
+}
 
-        /* Settings Section */
-        #settings-section {
-            margin-top: 25px;
-            border-top: 1px solid #333;
-            padding-top: 20px;
-        }
-        #settings-section h3 {
-            margin-bottom: 10px;
-        }
-        .setting-row {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .setting-label {
-            font-size: 14px;
-            color: #ccc;
-            margin-right: 10px;
-        }
-        .setting-control {
-            flex: 1;
-        }
-        select, input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            background: #2a2a2a;
-            color: white;
-            border: 1px solid #444;
-            border-radius: 4px;
-            font-size: 14px;
-            appearance: none; /* Remove default arrow in some browsers */
-            -webkit-appearance: none; /* For Safari */
-            -moz-appearance: none; /* For Firefox */
-            background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position-x: 100%;
-            background-position-y: 5px;
-            padding-right: 25px; /* Space for the arrow */
-        }
-        select:focus, input[type="number"]:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
+/* Settings Section */
+#settings-section {
+    margin-top: 25px;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+}
+#settings-section h3 {
+    margin-bottom: 10px;
+}
+.setting-row {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.setting-label {
+    font-size: 14px;
+    color: #ccc;
+    margin-right: 10px;
+}
+.setting-control {
+    flex: 1;
+}
+select, input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    background: #2a2a2a;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 14px;
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none; /* For Safari */
+    -moz-appearance: none; /* For Firefox */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: 100%;
+    background-position-y: 5px;
+    padding-right: 25px; /* Space for the arrow */
+}
+select:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
 
 
-        /* Enhanced Editor Container */
-        #editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        #editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-        }
-        #loader-container, #timer, #copy-btn, #token-counts {
-            display: flex;
-            align-items: center;
-            margin-left: 15px;
-        }
-        #loader-container {
-            width: 30px;
-            justify-content: center;
-            display: none;
-        }
-        #timer {
-            color: #e0e0e0;
-            font-size: 16px;
-            width: auto;
-            padding: 0 10px;
-            font-family: monospace;
-        }
-        #copy-btn {
-            width: 40px;
-            height: 40px;
-            background: #333;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        #copy-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: white;
-        }
-        #copy-btn:hover {
-            background: #444;
-            transform: scale(1.1);
-        }
-        #copy-btn:active {
-            transform: scale(0.95);
-        }
-        .copy-tooltip {
-            position: absolute;
-            background: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            white-space: nowrap;
-        }
-        .loader {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        .tick-icon {
-            display: none;
-            width: 24px;
-            height: 24px;
-            fill: lightgreen;
-        }
-        .loader-container.success .loader {
-            display: none;
-        }
-        .loader-container.success .tick-icon {
-            display: block;
-        }
-        .loader-container.success {
-            color: lightgreen;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+/* Enhanced Editor Container */
+#editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+#editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+}
+#loader-container, #timer, #copy-btn, #token-counts {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+#loader-container {
+    width: 30px;
+    justify-content: center;
+    display: none; /* Initially hidden */
+    align-items: center;
+}
+#timer {
+    color: #e0e0e0;
+    font-size: 16px;
+    width: auto;
+    padding: 0 10px;
+    font-family: monospace;
+}
+#copy-btn {
+    width: 40px;
+    height: 40px;
+    background: #333;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+#copy-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+#copy-btn:hover {
+    background: #444;
+    transform: scale(1.1);
+}
+#copy-btn:active {
+    transform: scale(0.95);
+}
+.copy-tooltip {
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+.loader {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+.tick-icon {
+    display: none;
+    width: 24px;
+    height: 24px;
+    fill: lightgreen;
+}
 
-        /* Enhanced Tabs */
-        #code-tabs-container {
-            display: flex;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #444;
-            overflow-x: auto;
-            scrollbar-width: thin;
-        }
-        #code-tabs-container::-webkit-scrollbar {
-            height: 6px;
-        }
-        #code-tabs-container::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 3px;
-        }
-        .code-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #1e1e1e;
-            color: #ccc;
-            border: 1px solid #444;
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
-            margin-right: 5px;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        .code-tab:hover {
-            background-color: #2a2a2a;
-        }
-        .code-tab.active {
-            background-color: #333;
-            color: white;
-            font-weight: bold;
-        }
+#loader-container.success .loader {
+    display: none; /* Hide the loader */
+}
+#loader-container.success .tick-icon {
+    display: inline-block; /* Show the tick */
+}
 
-        /* Enhanced Editor */
-        #editor {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #444;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-        /* Enhanced Response Box */
-        #response-box {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background: #1e1e1e;
-            border: 1px solid #444;
-            min-height: 150px;
-            max-height: 250px;
-            border-radius: 10px;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-        #response-box:hover {
-            border-color: #555;
-        }
-        #response-content {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            line-height: 1.6;
-        }
-        #response-content a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        #response-content a:hover {
-            text-decoration: underline;
-        }
+/* Enhanced Tabs */
+#code-tabs-container {
+    display: flex;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #444;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+#code-tabs-container::-webkit-scrollbar {
+    height: 6px;
+}
+#code-tabs-container::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+}
+.code-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #1e1e1e;
+    color: #ccc;
+    border: 1px solid #444;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    margin-right: 5px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+.code-tab:hover {
+    background-color: #2a2a2a;
+}
+.code-tab.active {
+    background-color: #333;
+    color: white;
+    font-weight: bold;
+}
 
-        /* Token counts styling */
-        #token-counts {
-            margin-left: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 8px;
-            background: #252525;
-            border-radius: 6px;
-        }
-        #token-counts span {
-            font-size: 12px;
-            color: #bbb;
-            margin: 2px 0;
-        }
+/* Enhanced Editor */
+#editor {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
 
-        /* Page title styling */
-        .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #e0e0e0;
-            margin-bottom: 5px;
-        }
-        .section-title {
-            font-size: 18px;
-            color: #e0e0e0;
-            margin: 15px 0 10px 0;
-        }
+/* Enhanced Response Box */
+#response-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    min-height: 150px;
+    max-height: 250px;
+    border-radius: 10px;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+#response-box:hover {
+    border-color: #555;
+}
+#response-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.6;
+}
+#response-content a {
+    color: #007bff;
+    text-decoration: none;
+}
+#response-content a:hover {
+    text-decoration: underline;
+}
 
-        /* Copy Success Animation */
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(10px); }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
-        }
-        .copy-feedback {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            display: none;
-            animation: fadeInOut 2s ease forwards;
-            z-index: 1000;
-        }
+/* Token counts styling */
+#token-counts {
+    margin-left: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px;
+    background: #252525;
+    border-radius: 6px;
+}
+#token-counts span {
+    font-size: 12px;
+    color: #bbb;
+    margin: 2px 0;
+}
 
-        #preview-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 10px;
-            background-color: white; /* or any background for preview */
-        }
+/* Page title styling */
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 5px;
+}
+.section-title {
+    font-size: 18px;
+    color: #e0e0e0;
+    margin: 15px 0 10px 0;
+}
+
+/* Copy Success Animation */
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+.copy-feedback {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    display: none;
+    animation: fadeInOut 2s ease forwards;
+    z-index: 1000;
+}
+/* --- NEW CSS --- */
+
+/* Preview Button */
+.preview-button {
+    padding: 10px 15px;
+    background: #2ecc71;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.preview-button:hover {
+    background: #27ae60;
+}
+
+/* Preview Container */
+#preview-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;  /* Important for iframe visibility */
+    z-index: 20;              /* Ensure it's above the editor */
+    border-radius: 10px;       /* Match editor's border-radius */
+    overflow: hidden;         /* Hide any overflowing content */
+}
+
+#preview-content {
+    width: 100%;
+    height: calc(100% - 30px);  /* Make space for close button */
+}
+
+.close-preview-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: black;
+    z-index: 21; /* Above the iframe content */
+}
+
+#preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+     background-color: white; /* or any background for preview */
+}
     </style>
 </head>
 <body>
     <div id="sidebar">
         <h3>Code Generator</h3>
         <input type="text" id="prompt" placeholder="Describe what code you need...">
-        <button id="ask-btn" onclick="askGemini()">Generate Code</button>
+        <button id="ask-btn">Generate Code</button>
 
         <div id="settings-section">
             <h3>Settings</h3>
-
             <div class="setting-row">
                 <label for="theme-select" class="setting-label">Theme</label>
                 <div class="setting-control">
@@ -378,7 +429,6 @@
                     </select>
                 </div>
             </div>
-
             <div class="setting-row">
                 <label for="font-size-input" class="setting-label">Font Size</label>
                 <div class="setting-control">
@@ -387,6 +437,7 @@
             </div>
         </div>
     </div>
+
     <div id="editor-container">
         <div id="editor-header">
             <div class="header-left">
@@ -405,7 +456,7 @@
                     <span id="response-tokens">Response Tokens: 0</span>
                     <span id="total-tokens">Total Tokens: 0</span>
                 </div>
-                <button id="copy-btn" onclick="copyToClipboard()">
+                <button id="copy-btn">
                     <svg viewBox="0 0 24 24">
                         <path d="M16 1H4c-1.1 0-2 .9-2 2v16h2V3h12V1zM19 5H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path>
                     </svg>
@@ -428,79 +479,149 @@
     <div id="copy-feedback" class="copy-feedback">Code copied to clipboard!</div>
 
     <script>
-        var editor = ace.edit("editor");
-        editor.setTheme("ace/theme/github_dark");
-        editor.session.setMode("ace/mode/javascript");
-        editor.setOptions({
-            enableBasicAutocompletion: true,
-            enableLiveAutocompletion: true,
-            enableSnippets: true,
-            fontSize: "14px"
-        });
+        const GEMINI_API_KEY = "AIzaSyAGDighnmGYQfXhKlql6W3AKKpDtMlYCas"; // Replace with your API key
 
-        const supportedLanguages = {
-            "javascript": "javascript",
-            "python": "python",
-            "java": "java",
-            "c": "c_cpp",
-            "c++": "c_cpp",
-            "c#": "csharp",
-            "html": "html",
-            "css": "css",
-            "php": "php",
-            "typescript": "typescript",
-            "swift": "swift",
-            "go": "golang",
-            "ruby": "ruby",
-            "rust": "rust"
-        };
+// DOM Element References
+const promptInput = document.getElementById('prompt');
+const askButton = document.getElementById('ask-btn');
+const themeSelect = document.getElementById('theme-select');
+const fontSizeInput = document.getElementById('font-size-input');
+const loaderContainer = document.getElementById('loader-container');
+const timerDisplay = document.getElementById('timer');
+const promptTokensSpan = document.getElementById('prompt-tokens');
+const responseTokensSpan = document.getElementById('response-tokens');
+const totalTokensSpan = document.getElementById('total-tokens');
+const copyButton = document.getElementById('copy-btn');
+const codeTabsContainer = document.getElementById('code-tabs-container');
+const responseBox = document.getElementById('response-box');
+let responseContent = document.getElementById('response-content');
+const copyFeedback = document.getElementById('copy-feedback');
+const editor = ace.edit("editor");
 
-        const GEMINI_API_KEY = "AIzaSyAGDighnmGYQfXhKlql6W3AKKpDtMlYCas";
 
-        let startTime;
-        let timerInterval;
-        const loaderContainer = document.getElementById('loader-container');
-        const codeTabsContainer = document.getElementById('code-tabs-container');
-        const copyFeedback = document.getElementById('copy-feedback');
-        const responseBox = document.getElementById('response-box');
-        const responseContent = document.getElementById('response-content');
-        let codeBlocks = []; // To store all code blocks from response
-        let currentTab = 0; // Track currently active tab index
-        let tabElements = []; // Store tab elements for easy access
-        let previewTabElement = null; // Store preview tab element if created
-        let previewIframe = null; // Store preview iframe element if created
+// --- Initialization and Setup ---
 
-        // Initialize with empty editor content
-        editor.setValue("// Your code will appear here");
+// Initialize Ace Editor
+editor.setTheme("ace/theme/github_dark");
+editor.session.setMode("ace/mode/javascript");  // Default mode
+editor.setOptions({
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+    enableSnippets: true,
+    fontSize: "14px"
+});
+editor.setValue("// Your code will appear here");
 
-        // Make prompt field respond to Enter key
-        document.getElementById("prompt").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                askGemini();
-            }
-        });
 
-        async function askGemini() {
-            const prompt = document.getElementById("prompt").value;
-            if (!prompt) return alert("Please enter a prompt!");
+// Supported Languages (for Ace Editor mode setting)
+const supportedLanguages = {
+    "javascript": "javascript",
+    "python": "python",
+    "java": "java",
+    "c": "c_cpp",
+    "c++": "c_cpp",
+    "c#": "csharp",
+    "html": "html",
+    "css": "css",
+    "php": "php",
+    "typescript": "typescript",
+    "swift": "swift",
+    "go": "golang",
+    "ruby": "ruby",
+    "rust": "rust"
+};
 
-            // Reset UI elements
-            editor.setValue("// Generating code...");
-            responseContent.innerHTML = "Generating response...";
-            // Remove preview iframe if it exists
-            if (previewIframe) {
-                previewIframe.remove();
-                previewIframe = null;
-            }
+// State Variables
+let startTime;
+let timerInterval;
+let codeBlocks = [];  // Stores the code blocks from the Gemini API response.
+let currentTab = 0;  // Index of the currently active tab.
+let tabElements = []; // Array to store references to the tab DOM elements.
+let allBlocksForPreview = []; //Store the blocks to use it later on the preview.
+let isTyping = false; // NEW: Flag to track typing animation
 
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{
-                            text: `You are a specialized AI assistant that generates programming code. If the request can be reasonably solved using multiple different programming languages, generate code for up to 3 different languages. Otherwise, generate code in the most suitable language.
+// --- Preview Button ---
+const previewButton = document.createElement('button');
+previewButton.id = 'preview-btn';
+previewButton.textContent = 'Preview';
+previewButton.classList.add('preview-button');  // Add a class for styling
+// Insert the preview button *before* the settings section
+const settingsSection = document.getElementById('settings-section');
+document.getElementById('sidebar').insertBefore(previewButton, settingsSection);
+
+// --- Preview Container ---
+const previewContainer = document.createElement('div');
+previewContainer.id = 'preview-container';
+previewContainer.style.display = 'none'; // Initially hidden
+previewContainer.innerHTML = `
+    <div id="preview-content"></div>
+    <button class="close-preview-btn">X</button>
+`;
+// Insert *after* the editor, but within the editor-container
+document.getElementById('editor-container').appendChild(previewContainer);
+
+
+
+// --- Event Listeners ---
+
+// Ask button click
+askButton.addEventListener('click', askGemini);
+
+// Prompt input (Enter key)
+promptInput.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        askGemini();
+    }
+});
+
+// Theme select change
+themeSelect.addEventListener('change', function() {
+    editor.setTheme(`ace/theme/${this.value}`);
+});
+
+// Font size input change
+fontSizeInput.addEventListener('change', function() {
+    editor.setFontSize(`${this.value}px`);
+});
+
+// Copy button click
+copyButton.addEventListener('click', copyToClipboard);
+
+// Preview button click.  Now checks isTyping.
+previewButton.addEventListener('click', () => {
+    if (!isTyping && allBlocksForPreview.length > 0) {
+        displayPreview(allBlocksForPreview);
+    }
+});
+
+// Event delegation for the close button within the preview container
+previewContainer.addEventListener('click', (event) => {
+    if (event.target.classList.contains('close-preview-btn')) {
+        hidePreview();
+    }
+});
+
+
+// --- Core Functions ---
+
+async function askGemini() {
+    const prompt = promptInput.value;
+    if (!prompt) {
+        alert("Please enter a prompt!");
+        return;
+    }
+
+    // Reset UI
+    resetUI();
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{ parts: [{
+                    text: `You are a specialized AI assistant that generates programming code. If the request can be reasonably solved using multiple different programming languages, generate code for up to 3 different languages. Otherwise, generate code in the most suitable language.
 
 **Rules:**
 1. Return output **strictly** in **JSON format** inside a code block (\`\`\`json ... \`\`\`).
@@ -534,310 +655,335 @@
 
 **Task:**
 Write program(s) for the following request: "${prompt}" strictly following the format above.`
-                        }] }]
-                    })
-                });
-
-                const data = await response.json();
-                let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-                // Extract JSON from the response
-                const jsonMatch = aiText.match(/```json([\s\S]*?)```/);
-                let jsonString = jsonMatch ? jsonMatch[1].trim() : aiText.replace(/```json/g, "").replace(/```/g, "").trim();
-
-                try {
-                    let aiResponse = JSON.parse(jsonString);
-
-                    // Extract token counts
-                    const usageMetadata = data.usageMetadata || {};
-                    const promptTokenCount = usageMetadata.promptTokenCount || 0;
-                    const candidatesTokenCount = usageMetadata.candidatesTokenCount || 0;
-                    const totalTokenCount = usageMetadata.totalTokenCount || 0;
-
-                    // Update token count display
-                    document.getElementById('prompt-tokens').textContent = `Prompt Tokens: ${promptTokenCount}`;
-                    document.getElementById('response-tokens').textContent = `Response Tokens: ${candidatesTokenCount}`;
-                    document.getElementById('total-tokens').textContent = `Total Tokens: ${totalTokenCount}`;
-
-                    codeBlocks = aiResponse.code_blocks || []; // Store code blocks
-
-                    if (codeBlocks.length > 0) {
-                        createCodeTabsSequentially(codeBlocks); // Create tabs sequentially
-                    } else {
-                        alert("No code blocks received from AI.");
-                        editor.setValue("// No code was generated for your request");
-                        responseContent.innerHTML = "The AI couldn't generate code for your request. Please try rephrasing.";
-                    }
-                } catch (jsonError) {
-                    console.error("Error parsing JSON:", jsonError);
-                    alert("Failed to parse AI response. The response was not in the expected format.");
-                    editor.setValue("// Error: Could not parse AI response");
-                    responseContent.innerHTML = "There was a problem with the AI response format. Please try again.";
-                }
-            } catch (error) {
-                console.error("Error fetching AI response:", error);
-                alert("Failed to fetch response from Gemini API.");
-                editor.setValue("// Error: Could not connect to Gemini API");
-                responseContent.innerHTML = "Failed to connect to the Gemini API. Please check your internet connection and try again.";
-            }
-        }
-
-        function createCodeTabsSequentially(blocks) {
-            codeTabsContainer.innerHTML = ''; // Clear existing tabs
-            tabElements = []; // Reset tab elements array
-            previewTabElement = null; // Reset preview tab
-            previewIframe = null; // Reset preview iframe
-
-            let hasHTML = blocks.some(block => block.language?.toLowerCase() === 'html');
-            let hasCSS = blocks.some(block => block.language?.toLowerCase() === 'css');
-            let hasJS = blocks.some(block => block.language?.toLowerCase() === 'javascript');
-
-            if (hasHTML) {
-                if (blocks.length > 0) {
-                    createTab(blocks[0], 0, blocks); // Create only the first tab initially and display its code
-                }
-                if (hasHTML || hasCSS || hasJS) {
-                    createPreviewTab(blocks); // Create preview tab if HTML, CSS, or JS is present
-                }
-            } else if (blocks.length > 0) {
-                createTab(blocks[0], 0, blocks);
-            }
-        }
-
-        function createTab(block, index, allBlocks) {
-            const tabElement = document.createElement('div');
-            tabElement.classList.add('code-tab');
-            tabElement.textContent = block.language.toUpperCase() || `Code ${index + 1}`;
-            tabElement.addEventListener('click', () => {
-                displayCodeInTab(index, false, allBlocks); // Pass allBlocks for manual switch
-            });
-            codeTabsContainer.appendChild(tabElement);
-            tabElements.push(tabElement);
-
-            displayCodeInTab(index, true, allBlocks); // Initial display and type for the first tab
-        }
-
-        function createPreviewTab(blocks) {
-            previewTabElement = document.createElement('div');
-            previewTabElement.classList.add('code-tab');
-            previewTabElement.textContent = 'Preview';
-            previewTabElement.addEventListener('click', () => {
-                displayPreview(blocks);
-            });
-            codeTabsContainer.appendChild(previewTabElement);
-        }
-
-        function displayCodeInTab(tabIndex, shouldType, allBlocks) {
-            if (tabIndex < 0 || tabIndex >= codeBlocks.length) return;
-
-            currentTab = tabIndex;
-            // Update active tab highlighting
-            tabElements.forEach((tab, index) => {
-                tab.classList.toggle('active', index === tabIndex);
-            });
-            if (previewTabElement) previewTabElement.classList.remove('active'); // Ensure preview tab is not active
-
-            const codeBlock = codeBlocks[tabIndex];
-            if (supportedLanguages[codeBlock.language?.toLowerCase()]) {
-                editor.session.setMode(`ace/mode/${supportedLanguages[codeBlock.language?.toLowerCase()]}`);
-            } else {
-                editor.session.setMode("ace/mode/text"); // Default to text mode if language not supported
-            }
-
-            responseBox.innerHTML = `<div id="response-content">${marked.parse(codeBlock.response || "No explanation provided.")}</div>`;
-            responseContent = document.getElementById('response-content'); // Re-assign after innerHTML change
-            responseBox.scrollTop = 0;
-            if (previewIframe) {
-                previewIframe.remove();
-                previewIframe = null;
-            }
-
-
-            if (shouldType) {
-                typeCodeInTab(codeBlock.code || "// No code provided", tabIndex, allBlocks);
-            } else {
-                editor.setValue(codeBlock.code || "// No code provided");
-                editor.clearSelection();
-            }
-        }
-
-        function displayPreview(blocks) {
-            if (!previewTabElement) return;
-
-            // Update active tab highlighting
-            tabElements.forEach(tab => tab.classList.remove('active'));
-            previewTabElement.classList.add('active');
-
-            editor.setValue("// Preview is shown below");
-            editor.session.setMode("ace/mode/html");
-            editor.setReadOnly(true);
-
-            let htmlCode = blocks.find(block => block.language?.toLowerCase() === 'html')?.code || '';
-            let cssCode = blocks.find(block => block.language?.toLowerCase() === 'css')?.code || '';
-            let jsCode = blocks.find(block => block.language?.toLowerCase() === 'javascript')?.code || '';
-
-            let previewContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>${cssCode}</style>
-                </head>
-                <body>
-                    ${htmlCode}
-                    <script>${jsCode}<` + `/script>
-                </body>
-                </html>
-            `;
-
-            responseBox.innerHTML = ''; // Clear response box content
-            previewIframe = document.createElement('iframe');
-            previewIframe.id = 'preview-iframe';
-            responseBox.appendChild(previewIframe);
-
-            previewIframe.contentDocument.open();
-            previewIframe.contentDocument.write(previewContent);
-            previewIframe.contentDocument.close();
-        }
-
-
-        function typeCodeInTab(code, tabIndex, allBlocks) {
-            editor.setValue("");
-            let index = 0;
-            editor.setReadOnly(true);
-            editor.selection.clearSelection();
-
-            // Timer Start & Loader Start
-            const timerDisplay = document.getElementById('timer');
-            startTime = new Date();
-            updateTimerDisplay();
-            timerInterval = setInterval(updateTimerDisplay, 10);
-            loaderContainer.classList.remove('success'); // Ensure not in success state
-            loaderContainer.style.display = 'flex'; // Show loader
-
-            function updateTimerDisplay() {
-                const currentTime = new Date();
-                const elapsedTimeMs = currentTime - startTime;
-                const elapsedTimeSec = Math.floor(elapsedTimeMs / 1000);
-                const minutes = Math.floor(elapsedTimeSec / 60);
-                const seconds = elapsedTimeSec % 60;
-                const milliseconds = Math.floor((elapsedTimeMs % 1000) / 10);
-                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
-            }
-
-            function type() {
-                if (index < code.length) {
-                    editor.setValue(code.substring(0, index + 1), 1);
-                    let line = (code.substring(0, index + 1).match(/\n/g) || []).length + 1;
-                    let column = (index + 1) - code.lastIndexOf("\n", index);
-                    editor.gotoLine(line, column);
-                    editor.renderer.scrollToLine(line);
-                    index++;
-                    setTimeout(type, 0);
-                } else {
-                    editor.setReadOnly(false);
-                    // Timer Stop & Loader Stop and Show Tick
-                    clearInterval(timerInterval);
-                    loaderContainer.classList.add('success'); // Add success class to show tick
-                    setTimeout(() => {
-                         loaderContainer.style.display = 'none';
-                         // After typing in current tab, create and display next tab if available
-                         if (tabIndex < allBlocks.length - 1 && !previewTabElement) { // Don't create next code tab if preview tab exists
-                             createTab(allBlocks[tabIndex + 1], tabIndex + 1, allBlocks); // Create next tab sequentially
-                         }
-                     }, 1000); // Delay before moving to next tab or hiding loader
-                }
-            }
-
-            type();
-        }
-
-        function copyToClipboard() {
-            // Get the current content from the editor
-            const codeText = editor.getValue();
-
-            // Use the Clipboard API
-            navigator.clipboard.writeText(codeText)
-                .then(() => {
-                    // Show the feedback element
-                    copyFeedback.style.display = 'block';
-
-                    // Hide it after animation completes
-                    setTimeout(() => {
-                        copyFeedback.style.display = 'none';
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error("Failed to copy to clipboard:", err);
-
-                    // Fallback method for browsers that don't support clipboard API
-                    try {
-                        // Create a temporary textarea element
-                        const textarea = document.createElement('textarea');
-                        textarea.value = codeText;
-
-                        // Make the textarea out of viewport
-                        textarea.style.position = 'fixed';
-                        textarea.style.left = '-999999px';
-                        textarea.style.top = '-999999px';
-
-                        document.body.appendChild(textarea);
-                        textarea.focus();
-                        textarea.select();
-
-                        // Execute copy command
-                        const successful = document.execCommand('copy');
-
-                        // Remove the temporary element
-                        document.body.removeChild(textarea);
-
-                        if (successful) {
-                            copyFeedback.style.display = 'block';
-                            setTimeout(() => {
-                                copyFeedback.style.display = 'none';
-                            }, 2000);
-                        } else {
-                            alert("Failed to copy code to clipboard. Please select and copy manually.");
-                        }
-                    } catch (fallbackErr) {
-                        console.error("Fallback copy method failed:", fallbackErr);
-                        alert("Failed to copy code to clipboard. Please select and copy manually.");
-                    }
-                });
-        }
-
-        // Add prompt placeholder animation
-        const promptInput = document.getElementById('prompt');
-        const placeholders = [
-            "Create a simple todo app in React...",
-            "Generate a Python script to scrape websites...",
-            "Write a Java class for managing user data...",
-            "Show me a CSS animation for a button...",
-            "Make a function to validate email addresses..."
-        ];
-        let placeholderIndex = 0;
-
-        function changePlaceholder() {
-            promptInput.setAttribute('placeholder', placeholders[placeholderIndex]);
-            placeholderIndex = (placeholderIndex + 1) % placeholders.length;
-        }
-
-        // Change placeholder every 3 seconds
-        setInterval(changePlaceholder, 3000);
-        changePlaceholder(); // Initial call
-
-        // Theme Change Functionality
-        const themeSelect = document.getElementById('theme-select');
-        themeSelect.addEventListener('change', function() {
-            const selectedTheme = this.value;
-            editor.setTheme(`ace/theme/${selectedTheme}`);
+                }] }]
+            })
         });
 
-        // Font Size Change Functionality
-        const fontSizeInput = document.getElementById('font-size-input');
-        fontSizeInput.addEventListener('change', function() {
-            const fontSize = this.value;
-            editor.setFontSize(`${fontSize}px`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!aiText) {
+          throw new Error("No text returned from Gemini API.");
+        }
+
+        // Extract JSON and parse
+        const jsonMatch = aiText.match(/```json([\s\S]*?)```/);
+        const jsonString = jsonMatch ? jsonMatch[1] : aiText.replace(/```json/g, "").replace(/```/g, "").trim();
+        const aiResponse = parseApiResponse(jsonString);
+
+        // Update Token Counts
+        updateTokenCounts(data.usageMetadata);
+
+        // Process Code Blocks
+        codeBlocks = aiResponse.code_blocks || [];
+        allBlocksForPreview = [...codeBlocks]; //Store the blocks
+        if (codeBlocks.length > 0) {
+            createCodeTabsSequentially(codeBlocks);
+        } else {
+            handleNoCodeResponse();
+        }
+
+    } catch (error) {
+        handleApiError(error);
+    }
+}
+
+
+// --- Helper Functions ---
+
+function resetUI() {
+    editor.setValue("// Generating code...");
+    responseContent.innerHTML = "Generating response...";
+    // Clear existing tabs
+    codeTabsContainer.innerHTML = '';
+    tabElements = [];
+    allBlocksForPreview = [];
+    hidePreview(); // Ensure preview is hidden.
+    isTyping = false;  // Reset the typing flag.
+    loaderContainer.style.display = 'none'; //Hide loader
+}
+
+
+
+function parseApiResponse(jsonString) {
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Error parsing JSON:", error);
+        throw new Error("Failed to parse AI response.  The response was not in the expected format.");
+    }
+}
+
+function updateTokenCounts(usageMetadata) {
+    const promptTokenCount = usageMetadata?.promptTokenCount || 0;
+    const candidatesTokenCount = usageMetadata?.candidatesTokenCount || 0;
+    const totalTokenCount = usageMetadata?.totalTokenCount || 0;
+
+    promptTokensSpan.textContent = `Prompt Tokens: ${promptTokenCount}`;
+    responseTokensSpan.textContent = `Response Tokens: ${candidatesTokenCount}`;
+    totalTokensSpan.textContent = `Total Tokens: ${totalTokenCount}`;
+}
+
+
+function handleNoCodeResponse() {
+    alert("No code blocks received from AI.");
+    editor.setValue("// No code was generated for your request");
+    responseContent.innerHTML = "The AI couldn't generate code for your request.  Please try rephrasing.";
+}
+
+function handleApiError(error) {
+    console.error("Error fetching or processing AI response:", error);
+    alert(error.message || "An unexpected error occurred.");
+    editor.setValue(`// Error: ${error.message || "Could not process AI response"}`);
+    responseContent.innerHTML = "There was a problem processing the AI response.  Please try again.";
+}
+
+// --- Tab Management ---
+
+function createCodeTabsSequentially(blocks) {
+    codeTabsContainer.innerHTML = ''; // Clear existing tabs
+    tabElements = [];
+
+    if (blocks.length > 0) {
+          createTab(blocks[0], 0, blocks); // Create only the first tab
+    }
+}
+
+
+
+function createTab(block, index, allBlocks) {
+    const tabElement = document.createElement('div');
+    tabElement.classList.add('code-tab');
+    tabElement.textContent = block.language.toUpperCase() || `Code ${index + 1}`;
+    tabElement.addEventListener('click', () => displayCodeInTab(index, false, allBlocks));
+    codeTabsContainer.appendChild(tabElement);
+    tabElements.push(tabElement);
+    displayCodeInTab(index, true, allBlocks);
+}
+
+
+
+
+function displayCodeInTab(tabIndex, shouldType, allBlocks) {
+    if (tabIndex < 0 || tabIndex >= codeBlocks.length) return;
+
+    currentTab = tabIndex;
+    tabElements.forEach((tab, index) => tab.classList.toggle('active', index === tabIndex));
+
+    // --- Show the Ace Editor ---
+    editor.container.style.display = '';
+    hidePreview(); // Always hide the preview when switching tabs.
+
+    const codeBlock = codeBlocks[tabIndex];
+    const language = codeBlock.language?.toLowerCase();
+    editor.session.setMode(supportedLanguages[language] ? `ace/mode/${supportedLanguages[language]}` : "ace/mode/text");
+
+    //Update response
+    responseBox.innerHTML = `<div id="response-content">${marked.parse(codeBlock.response || "No explanation provided.")}</div>`;
+    responseContent = document.getElementById('response-content'); //Re-assign
+
+    responseBox.scrollTop = 0;
+
+    if (shouldType) {
+        typeCodeInTab(codeBlock.code || "// No code provided", tabIndex, allBlocks);
+    } else {
+        editor.setValue(codeBlock.code || "// No code provided");
+        editor.clearSelection();
+    }
+}
+
+
+function displayPreview(blocks) {
+    // Input validation
+    if (!Array.isArray(blocks)) {
+        console.error("displayPreview: blocks is not an array", blocks);
+        responseContent.innerHTML = "Error: Invalid preview data."; // Show error
+        return;
+    }
+
+       // Hide editor
+    editor.container.style.display = 'none';
+
+    // Show preview container
+    previewContainer.style.display = 'block';
+
+    // Create/Show the iframe WITHIN the preview container
+    let previewIframe = document.getElementById('preview-iframe');
+    if (!previewIframe) {
+        previewIframe = document.createElement('iframe');
+        previewIframe.id = 'preview-iframe';
+        previewIframe.style.width = '100%';
+        previewIframe.style.height = '100%';
+        previewIframe.style.border = 'none';
+        // Append iframe to the PREVIEW CONTAINER
+        document.getElementById('preview-content').appendChild(previewIframe); // Append to the inner div
+    }
+
+    // Safely extract code
+    const htmlBlock = blocks.find(block => block?.language?.toLowerCase() === 'html');
+    const cssBlock = blocks.find(block => block?.language?.toLowerCase() === 'css');
+    const jsBlock = blocks.find(block => block?.language?.toLowerCase() === 'javascript');
+
+    const htmlCode = htmlBlock ? htmlBlock.code : '';
+    const cssCode = cssBlock ? cssBlock.code : '';
+    const jsCode = jsBlock ? jsBlock.code : '';
+
+    const previewContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>${cssCode}</style>
+        </head>
+        <body>
+            ${htmlCode}
+            <script>${jsCode}<\/script>
+        </body>
+        </html>
+    `;
+
+    // Write to the iframe
+    try {
+        previewIframe.contentDocument.open();
+        previewIframe.contentDocument.write(previewContent);
+        previewIframe.contentDocument.close();
+    } catch (error) {
+        console.error("Error writing to iframe:", error);
+        // Display error within the iframe itself
+        previewIframe.contentDocument.body.innerHTML = "<p>Error: Could not display preview.</p>";
+    }
+}
+
+// NEW: Hide the preview container
+function hidePreview() {
+    previewContainer.style.display = 'none';
+}
+
+// --- Typing Animation and Timer ---
+
+function typeCodeInTab(code, tabIndex, allBlocks) {
+    editor.setValue("");
+    let index = 0;
+    editor.setReadOnly(true);
+    editor.selection.clearSelection();
+    isTyping = true; // Set the typing flag.
+
+    // Timer and loader setup
+    startTime = new Date();
+    updateTimerDisplay();
+    timerInterval = setInterval(updateTimerDisplay, 10);
+    loaderContainer.classList.remove('success');
+    loaderContainer.style.display = 'flex';
+
+
+    function updateTimerDisplay() {
+        const currentTime = new Date();
+        const elapsedTimeMs = currentTime - startTime;
+        const elapsedTimeSec = Math.floor(elapsedTimeMs / 1000);
+        const minutes = Math.floor(elapsedTimeSec / 60);
+        const seconds = elapsedTimeSec % 60;
+        const milliseconds = Math.floor((elapsedTimeMs % 1000) / 10);
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+    }
+
+    function type() {
+        if (index < code.length) {
+            editor.setValue(code.substring(0, index + 1), 1);
+            const line = (code.substring(0, index + 1).match(/\n/g) || []).length + 1;
+            const column = (index + 1) - code.lastIndexOf("\n", index);
+            editor.gotoLine(line, column);
+            editor.renderer.scrollToLine(line);
+            index++;
+            setTimeout(type, 0);
+        } else {
+            editor.setReadOnly(false);
+            clearInterval(timerInterval);
+             loaderContainer.classList.add('success');
+            isTyping = false; // Reset typing flag.
+
+
+              // Delay hiding loader and moving to next tab OR showing preview.
+            setTimeout(() => {
+                loaderContainer.style.display = 'none';
+
+                // Only proceed to the next tab if NOT the last tab
+              if (tabIndex < allBlocks.length -1 ) {
+                  createTab(allBlocks[tabIndex + 1], tabIndex + 1, allBlocks);
+              } else { // *** ADDED THIS BLOCK ***
+                    // If it's the last tab, and we have HTML, CSS, or JS, show the preview.
+                    let hasHTML = allBlocks.some(block => block.language?.toLowerCase() === 'html');
+                    if (hasHTML) {
+                        displayPreview(allBlocksForPreview);
+                    }
+                }
+            }, 1000);
+        }
+    }
+
+    type();
+}
+
+// --- Copy to Clipboard ---
+function copyToClipboard() {
+    const codeText = editor.getValue();
+
+    navigator.clipboard.writeText(codeText)
+        .then(() => showCopyFeedback())
+        .catch(err => {
+            console.error("Failed to copy:", err);
+            fallbackCopyToClipboard(codeText);
         });
-    </script>
+}
+
+function showCopyFeedback() {
+    copyFeedback.style.display = 'block';
+    setTimeout(() => copyFeedback.style.display = 'none', 2000);
+}
+
+function fallbackCopyToClipboard(text) {
+    // Fallback for older browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';  // Prevent scrolling
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopyFeedback();
+        } else {
+            alert("Copy failed. Please copy manually.");
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        alert("Copy failed. Please copy manually.");
+    }
+    document.body.removeChild(textarea);
+}
+
+// --- Placeholder Animation ---
+
+const placeholders = [
+    "Create a simple todo app in React...",
+    "Generate a Python script to scrape websites...",
+    "Write a Java class for managing user data...",
+    "Show me a CSS animation for a button...",
+    "Make a function to validate email addresses..."
+];
+let placeholderIndex = 0;
+
+function changePlaceholder() {
+    promptInput.setAttribute('placeholder', placeholders[placeholderIndex]);
+    placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+}
+
+setInterval(changePlaceholder, 3000); // Change every 3 seconds
+changePlaceholder();
+    </script> 
 </body>
 </html>
